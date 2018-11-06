@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<canvas id="container"></canvas>
+</body>
+<script src="../dist/canvas.js"></script>
+<script>
+
+    const stage = new SC('container', {
+        width : 400,
+        height: 400
+    });
+
+    const rect = stage.rectangular({
+        startX   : 100,
+        startY   : 100,
+        width    : 200,
+        height   : 200,
+        fillStyle: '#ccc'
+    }).on('mouseenter', () => {
+        rect.config({
+            fillStyle: '#333'
+        });
+        stage.redraw();
+        console.log('mouseenter');
+    }).on('mouseleave', () => {
+        rect.config({
+            fillStyle: '#ccc'
+        });
+        stage.redraw();
+        console.log('mouseleave');
+    });
+
+    stage.addChild(rect);
+    stage.draw();
+
+</script>
+</html>
