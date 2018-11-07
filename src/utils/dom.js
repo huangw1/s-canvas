@@ -29,11 +29,28 @@ export const getScrollLeftTop = (element) => {
     }
 };
 
+export const getElementOffset = (element) => {
+    let top = 0;
+    let left = 0;
+
+    do {
+        top += element.offsetTop || 0;
+        left += element.offsetLeft || 0;
+        element = element.offsetParent;
+    } while (element);
+
+    return {
+        top,
+        left,
+    };
+}
+
 export const getPointer = (event) => {
     const element = event.target;
     const scroll = getScrollLeftTop(element);
+    const offset = getElementOffset(element);
     return {
-        x: event.clientX + scroll.left - element.offsetLeft,
-        y: event.clientY + scroll.top - element.offsetTop
+        x: event.clientX + scroll.left - offset.left,
+        y: event.clientY + scroll.top - offset.top
     };
 };

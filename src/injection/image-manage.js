@@ -1,4 +1,4 @@
-class ImageLoader {
+class ImageManage {
 
     imageList = [];
 
@@ -15,7 +15,8 @@ class ImageLoader {
                 this.num += 1;
             }
             image.src = item.src;
-            this.imageList.push(item)
+            item.image = image;
+            this.imageList.push(item);
         })
     }
 
@@ -35,4 +36,4 @@ class ImageLoader {
     }
 }
 
-export default ImageLoader
+export default ImageManage

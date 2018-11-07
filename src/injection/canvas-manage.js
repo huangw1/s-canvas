@@ -1,6 +1,6 @@
-import {addListener, getPointer, removeListener} from "./utils/dom";
+import {addListener, getPointer, removeListener} from "../utils/dom";
 
-class CanvasEvent {
+class CanvasManage {
 
     constructor(sc) {
         this.sc = sc;
@@ -24,25 +24,25 @@ class CanvasEvent {
         const downItems = _objects.filter(item => {
             return item.isPointInner(x, y);
         });
-
+        const downItem = downItems[0]
         // 触发事件
-        if (downItems.length) {
-            if (downItems[0].enableChangeIndex) {
-                this.sc._changeOrder(downItems[0]);
+        if (downItem) {
+            if (downItem.enableChangeIndex) {
+                this.sc.changeOrder(downItem);
             }
-            downItems[0].emit('mousedown');
+            downItem.emit('mousedown');
         }
 
         // 可移动、已选中
         const enableDragItems = _objects.filter(item => {
-            return item.isPointInner(x, y);
+            return item.isPointInner(x, y) && item.enableDrag;
         });
         const target = enableDragItems[0];
 
         const mouseMove = (e) => {
             const {x, y} = getPointer(e);
-            target.moveX = this.cacheX - x;
-            target.moveY = this.cacheY - y;
+            target.moveX = target.moveX + x - this.cacheX;
+            target.moveY = target.moveY + y - this.cacheY;
             target.isDragging = true;
             this.sc.redraw();
             this.cacheX = x;
@@ -51,7 +51,7 @@ class CanvasEvent {
 
         const mouseUp = (e) => {
             const {x, y} = getPointer(e);
-            const destinationItems = _objects.some(item => {
+            const destinationItems = _objects.filter(item => {
                 return item.isPointInner(x, y);
             });
             const destination = destinationItems[1];
@@ -134,4 +134,4 @@ class CanvasEvent {
     }
 }
 
-export default CanvasEvent;
+export default CanvasManage;

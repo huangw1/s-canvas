@@ -1,8 +1,8 @@
 import Base from "./base";
 
-class Rectangular extends Base {
+class Image extends Base {
 
-    static type = 'rectangular';
+    static type = 'image';
 
     constructor(sc, setting) {
         super(setting);
@@ -12,15 +12,19 @@ class Rectangular extends Base {
 
     draw() {
         const {canvas, transX, transY} = this.sc;
-        const {fixed, startX, startY, width, height, fillStyle, moveX, moveY} = this;
+        const {fixed, startX, startY, width, height, moveX, moveY, name, sliceX, sliceY, sliceWidth, sliceHeight} = this;
+        const src = this.sc.getImage(name);
 
         canvas.save();
         canvas.translate(moveX, moveY);
         if(fixed) {
             canvas.translate(transX, transY);
         }
-        canvas.fillStyle = fillStyle;
-        canvas.fillRect(startX, startY, width, height);
+        if(sliceWidth && sliceHeight) {
+            canvas.drawImage(src, sliceX, sliceY, sliceWidth, sliceHeight, startX, startY, width, height);
+        } else {
+            canvas.drawImage(src, startX, startY, width, height);
+        }
         canvas.restore();
     }
 
@@ -40,4 +44,4 @@ class Rectangular extends Base {
     }
 }
 
-export default Rectangular
+export default Image

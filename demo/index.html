@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <style>
+        canvas {
+            border: 1px solid;
+        }
+    </style>
 </head>
 <body>
 <canvas id="container"></canvas>
@@ -12,30 +17,47 @@
 
     const stage = new SC('container', {
         width : 400,
-        height: 400
+        height: 400,
+        images: [{
+            name: 'minion',
+            src : './img/minion.png'
+        }]
     });
 
     const rect = stage.rectangular({
-        startX   : 100,
-        startY   : 100,
-        width    : 200,
-        height   : 200,
-        fillStyle: '#ccc'
+        startX           : 150,
+        startY           : 150,
+        width            : 100,
+        height           : 100,
+        fillStyle        : '#ccc',
+        enableDrag       : true,
+        enableChangeIndex: true
     }).on('mouseenter', () => {
-        rect.config({
-            fillStyle: '#333'
-        });
-        stage.redraw();
-        console.log('mouseenter');
+        console.log('rect mouseenter');
     }).on('mouseleave', () => {
-        rect.config({
-            fillStyle: '#ccc'
-        });
-        stage.redraw();
-        console.log('mouseleave');
+        console.log('rect mouseleave');
+    });
+
+    const image = stage.image({
+        startX           : 150,
+        startY           : 150,
+        width            : 100,
+        height           : 160,
+        sliceX           : 250,
+        sliceY           : 150,
+        sliceWidth       : 500,
+        sliceHeight      : 800,
+        name             : 'minion',
+        enableDrag       : true,
+        enableChangeIndex: true
+    }).on('mouseenter', () => {
+        console.log('image mouseenter');
+    }).on('mouseleave', () => {
+        console.log('image mouseleave');
     });
 
     stage.addChild(rect);
+    stage.addChild(image);
     stage.draw();
 
 </script>

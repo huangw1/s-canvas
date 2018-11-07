@@ -1,7 +1,8 @@
-import ImageLoader from "./image-loader";
-import CanvasEvent from "./canvas-event";
+import ImageManage from "./injection/image-manage";
+import CanvasManage from "./injection/canvas-manage";
 import {register, reverse} from "./utils";
 import Rectangular from "./shapes/rectangular";
+import Image from "./shapes/image";
 
 // todo 全局触发事件
 class SC {
@@ -52,13 +53,13 @@ class SC {
     }
 
     draw() {
-        const imageLoader = new ImageLoader();
-        imageLoader.addImage(this.images);
-        imageLoader.ready().then(() => {
+        const imageManage = new ImageManage();
+        imageManage.addImage(this.images);
+        imageManage.ready().then(() => {
             this._draw();
             this._attachCanvasEvents();
         })
-        this.imageLoader = imageLoader;
+        this.imageManage = imageManage;
     }
 
     _draw() {
@@ -69,7 +70,7 @@ class SC {
         this.clear();
         this.canvas.save();
         this.canvas.translate(this.transX, this.transY);
-        this.draw();
+        this._draw();
         this.canvas.restore();
     }
 
@@ -78,16 +79,16 @@ class SC {
     }
 
     getImage(name) {
-        this.imageLoader.getImage(name);
+        return this.imageManage.getImage(name).image
     }
 
     _attachCanvasEvents() {
-        const canvasEvent = new CanvasEvent(this);
-        this.canvasEvent = canvasEvent;
+        const canvasManage = new CanvasManage(this);
+        this.canvasManage = canvasManage;
     }
 
     // object being dragged
-    _changeOrder(item) {
+    changeOrder(item) {
         const index = this.objects.indexOf(item);
         const target = this.objects[index];
         this.objects.splice(index, 1);
@@ -98,5 +99,6 @@ class SC {
 }
 
 register(SC, Rectangular.type, Rectangular);
+register(SC, Image.type, Image);
 
 window.SC = SC;

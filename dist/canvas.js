@@ -1333,15 +1333,15 @@
 
 	var _Promise = unwrapExports(promise$1);
 
-	var ImageLoader = function () {
-	    function ImageLoader() {
-	        _classCallCheck(this, ImageLoader);
+	var ImageManage = function () {
+	    function ImageManage() {
+	        _classCallCheck(this, ImageManage);
 
 	        this.imageList = [];
 	        this.num = 0;
 	    }
 
-	    _createClass(ImageLoader, [{
+	    _createClass(ImageManage, [{
 	        key: "addImage",
 	        value: function addImage(images) {
 	            var _this = this;
@@ -1356,6 +1356,7 @@
 	                    _this.num += 1;
 	                };
 	                image.src = item.src;
+	                item.image = image;
 	                _this.imageList.push(item);
 	            });
 	        }
@@ -1382,7 +1383,7 @@
 	        }
 	    }]);
 
-	    return ImageLoader;
+	    return ImageManage;
 	}();
 
 	var addListener = function addListener(element, event, handler) {
@@ -1416,20 +1417,37 @@
 	    };
 	};
 
-	var getPointer = function getPointer(event) {
-	    var element = event.target;
-	    var scroll = getScrollLeftTop(element);
+	var getElementOffset = function getElementOffset(element) {
+	    var top = 0;
+	    var left = 0;
+
+	    do {
+	        top += element.offsetTop || 0;
+	        left += element.offsetLeft || 0;
+	        element = element.offsetParent;
+	    } while (element);
+
 	    return {
-	        x: event.clientX + scroll.left - element.offsetLeft,
-	        y: event.clientY + scroll.top - element.offsetTop
+	        top: top,
+	        left: left
 	    };
 	};
 
-	var CanvasEvent = function () {
-	    function CanvasEvent(sc) {
+	var getPointer = function getPointer(event) {
+	    var element = event.target;
+	    var scroll = getScrollLeftTop(element);
+	    var offset = getElementOffset(element);
+	    return {
+	        x: event.clientX + scroll.left - offset.left,
+	        y: event.clientY + scroll.top - offset.top
+	    };
+	};
+
+	var CanvasManage = function () {
+	    function CanvasManage(sc) {
 	        var _this = this;
 
-	        _classCallCheck(this, CanvasEvent);
+	        _classCallCheck(this, CanvasManage);
 
 	        this.mouseDown = function (e) {
 	            var _sc = _this.sc,
@@ -1447,18 +1465,18 @@
 	            var downItems = _objects.filter(function (item) {
 	                return item.isPointInner(x, y);
 	            });
-
+	            var downItem = downItems[0];
 	            // 触发事件
-	            if (downItems.length) {
-	                if (downItems[0].enableChangeIndex) {
-	                    _this.sc._changeOrder(downItems[0]);
+	            if (downItem) {
+	                if (downItem.enableChangeIndex) {
+	                    _this.sc.changeOrder(downItem);
 	                }
-	                downItems[0].emit('mousedown');
+	                downItem.emit('mousedown');
 	            }
 
 	            // 可移动、已选中
 	            var enableDragItems = _objects.filter(function (item) {
-	                return item.isPointInner(x, y);
+	                return item.isPointInner(x, y) && item.enableDrag;
 	            });
 	            var target = enableDragItems[0];
 
@@ -1467,8 +1485,8 @@
 	                    x = _getPointer2.x,
 	                    y = _getPointer2.y;
 
-	                target.moveX = _this.cacheX - x;
-	                target.moveY = _this.cacheY - y;
+	                target.moveX = target.moveX + x - _this.cacheX;
+	                target.moveY = target.moveY + y - _this.cacheY;
 	                target.isDragging = true;
 	                _this.sc.redraw();
 	                _this.cacheX = x;
@@ -1480,7 +1498,7 @@
 	                    x = _getPointer3.x,
 	                    y = _getPointer3.y;
 
-	                var destinationItems = _objects.some(function (item) {
+	                var destinationItems = _objects.filter(function (item) {
 	                    return item.isPointInner(x, y);
 	                });
 	                var destination = destinationItems[1];
@@ -1566,7 +1584,7 @@
 	        this.bindEvents();
 	    }
 
-	    _createClass(CanvasEvent, [{
+	    _createClass(CanvasManage, [{
 	        key: 'bindEvents',
 	        value: function bindEvents() {
 	            var element = this.sc.element;
@@ -1576,7 +1594,7 @@
 	        }
 	    }]);
 
-	    return CanvasEvent;
+	    return CanvasManage;
 	}();
 
 	var noop = function noop() {};
@@ -2159,8 +2177,7 @@
 
 	var _inherits = unwrapExports(inherits);
 
-	var EVENT_TYPES = ['mousedown', 'mouseup', 'mouseenter', 'mouseleave', 'mousemove', 'dragin', 'dragout', 'drop'];
-
+	// sub pub
 	var EventBus = function () {
 	    function EventBus() {
 	        _classCallCheck(this, EventBus);
@@ -2169,7 +2186,7 @@
 	    }
 
 	    _createClass(EventBus, [{
-	        key: "on",
+	        key: 'on',
 	        value: function on(event) {
 	            var _this = this;
 
@@ -2177,21 +2194,15 @@
 
 	            var es = event.split(' ');
 	            es.forEach(function (e) {
-	                if (EVENT_TYPES.find(function (event) {
-	                    return event === e;
-	                })) {
-	                    _this.events.push({
-	                        eventType: e,
-	                        callback: callback
-	                    });
-	                } else {
-	                    console.warn(e + " is not in EVENT_TYPES");
-	                }
+	                _this.events.push({
+	                    eventType: e,
+	                    callback: callback
+	                });
 	            });
 	            return this;
 	        }
 	    }, {
-	        key: "emit",
+	        key: 'emit',
 	        value: function emit(event) {
 	            for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
 	                params[_key - 1] = arguments[_key];
@@ -2207,6 +2218,47 @@
 
 	    return EventBus;
 	}();
+
+	// keyboard press
+	var KeyPress = function (_EventBus) {
+	    _inherits(KeyPress, _EventBus);
+
+	    function KeyPress() {
+	        _classCallCheck(this, KeyPress);
+
+	        var _this2 = _possibleConstructorReturn(this, (KeyPress.__proto__ || _Object$getPrototypeOf(KeyPress)).call(this));
+
+	        _this2.events = [];
+	        return _this2;
+	    }
+
+	    _createClass(KeyPress, [{
+	        key: 'keyPressed',
+	        value: function keyPressed(e) {
+	            var key = '';
+	            switch (e.keyCode) {
+	                case 32:
+	                    key = 'space';
+	                    break;
+	                case 37:
+	                    key = 'left';
+	                    break;
+	                case 39:
+	                    key = 'right';
+	                    break;
+	                case 38:
+	                    key = 'up';
+	                    break;
+	                case 40:
+	                    key = 'down';
+	                    break;
+	            }
+	            this.emit(key);
+	        }
+	    }]);
+
+	    return KeyPress;
+	}(EventBus);
 
 	var Base = function (_EventBus) {
 	    _inherits(Base, _EventBus);
@@ -2285,11 +2337,13 @@
 	            var startX = this.startX,
 	                startY = this.startY,
 	                width = this.width,
-	                height = this.height;
+	                height = this.height,
+	                moveX = this.moveX,
+	                moveY = this.moveY;
 
 	            return {
-	                startX: startX,
-	                startY: startY,
+	                startX: startX + moveX,
+	                startY: startY + moveY,
 	                width: width,
 	                height: height
 	            };
@@ -2311,6 +2365,87 @@
 	}(Base);
 
 	Rectangular.type = 'rectangular';
+
+	var Image$1 = function (_Base) {
+	    _inherits(Image, _Base);
+
+	    function Image(sc, setting) {
+	        _classCallCheck(this, Image);
+
+	        var _this = _possibleConstructorReturn(this, (Image.__proto__ || _Object$getPrototypeOf(Image)).call(this, setting));
+
+	        _this.sc = sc;
+	        return _this;
+	    }
+
+	    _createClass(Image, [{
+	        key: "draw",
+	        value: function draw() {
+	            var _sc = this.sc,
+	                canvas = _sc.canvas,
+	                transX = _sc.transX,
+	                transY = _sc.transY;
+	            var fixed = this.fixed,
+	                startX = this.startX,
+	                startY = this.startY,
+	                width = this.width,
+	                height = this.height,
+	                moveX = this.moveX,
+	                moveY = this.moveY,
+	                name = this.name,
+	                sliceX = this.sliceX,
+	                sliceY = this.sliceY,
+	                sliceWidth = this.sliceWidth,
+	                sliceHeight = this.sliceHeight;
+
+	            var src = this.sc.getImage(name);
+
+	            canvas.save();
+	            canvas.translate(moveX, moveY);
+	            if (fixed) {
+	                canvas.translate(transX, transY);
+	            }
+	            if (sliceWidth && sliceHeight) {
+	                canvas.drawImage(src, sliceX, sliceY, sliceWidth, sliceHeight, startX, startY, width, height);
+	            } else {
+	                canvas.drawImage(src, startX, startY, width, height);
+	            }
+	            canvas.restore();
+	        }
+	    }, {
+	        key: "getBounds",
+	        value: function getBounds() {
+	            var startX = this.startX,
+	                startY = this.startY,
+	                width = this.width,
+	                height = this.height,
+	                moveX = this.moveX,
+	                moveY = this.moveY;
+
+	            return {
+	                startX: startX + moveX,
+	                startY: startY + moveY,
+	                width: width,
+	                height: height
+	            };
+	        }
+	    }, {
+	        key: "isPointInner",
+	        value: function isPointInner(x, y) {
+	            var _getBounds = this.getBounds(),
+	                startX = _getBounds.startX,
+	                startY = _getBounds.startY,
+	                width = _getBounds.width,
+	                height = _getBounds.height;
+
+	            return x > startX && x < startX + width && y > startY && y < startY + height;
+	        }
+	    }]);
+
+	    return Image;
+	}(Base);
+
+	Image$1.type = 'image';
 
 	// todo 全局触发事件
 
@@ -2360,13 +2495,13 @@
 	        value: function draw() {
 	            var _this = this;
 
-	            var imageLoader = new ImageLoader();
-	            imageLoader.addImage(this.images);
-	            imageLoader.ready().then(function () {
+	            var imageManage = new ImageManage();
+	            imageManage.addImage(this.images);
+	            imageManage.ready().then(function () {
 	                _this._draw();
 	                _this._attachCanvasEvents();
 	            });
-	            this.imageLoader = imageLoader;
+	            this.imageManage = imageManage;
 	        }
 	    }, {
 	        key: "_draw",
@@ -2381,7 +2516,7 @@
 	            this.clear();
 	            this.canvas.save();
 	            this.canvas.translate(this.transX, this.transY);
-	            this.draw();
+	            this._draw();
 	            this.canvas.restore();
 	        }
 	    }, {
@@ -2392,20 +2527,20 @@
 	    }, {
 	        key: "getImage",
 	        value: function getImage(name) {
-	            this.imageLoader.getImage(name);
+	            return this.imageManage.getImage(name).image;
 	        }
 	    }, {
 	        key: "_attachCanvasEvents",
 	        value: function _attachCanvasEvents() {
-	            var canvasEvent = new CanvasEvent(this);
-	            this.canvasEvent = canvasEvent;
+	            var canvasManage = new CanvasManage(this);
+	            this.canvasManage = canvasManage;
 	        }
 
 	        // object being dragged
 
 	    }, {
-	        key: "_changeOrder",
-	        value: function _changeOrder(item) {
+	        key: "changeOrder",
+	        value: function changeOrder(item) {
 	            var index = this.objects.indexOf(item);
 	            var target = this.objects[index];
 	            this.objects.splice(index, 1);
@@ -2419,6 +2554,7 @@
 	}();
 
 	register(SC, Rectangular.type, Rectangular);
+	register(SC, Image$1.type, Image$1);
 
 	window.SC = SC;
 
