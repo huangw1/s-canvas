@@ -21,7 +21,8 @@
         images: [{
             name: 'minion',
             src : './img/minion.png'
-        }]
+        }],
+        enableScale: true
     });
 
     const rect = stage.rectangular({
@@ -38,6 +39,20 @@
         console.log('rect mouseleave');
     });
 
+    const rotate = (shape, step) => {
+        shape.animateTo({
+            rotate: shape.rotate + step
+        }, {
+            easing: 'quadIn',
+            duration: 2000,
+            onFinish: () => {
+                rotate(shape, -step);
+            }
+        });
+    };
+
+    rotate(rect, 360);
+
     const image = stage.image({
         startX           : 150,
         startY           : 150,
@@ -47,7 +62,7 @@
         sliceY           : 150,
         sliceWidth       : 500,
         sliceHeight      : 800,
-        name             : 'minion',
+        image            : 'minion',
         enableDrag       : true,
         enableChangeIndex: true
     }).on('mouseenter', () => {
@@ -56,8 +71,46 @@
         console.log('image mouseleave');
     });
 
+    const line = stage.line({
+        strokeStyle: '#333',
+        smooth: true,
+        matrix: [
+            [0, 0],
+            [200, 200],
+            [0, 400]
+        ]
+    });
+
+    const line1 = stage.line({
+        strokeStyle: '#333',
+        smooth: true,
+        matrix: [
+            [400, 0],
+            [200, 200],
+            [400, 400]
+        ]
+    });
+
+    const text = stage.text({
+        text: '小黄人',
+        font: '18px serif',
+        startX: 150,
+        startY: 100,
+        width : 100,
+        height: 30,
+        backgroundColor: '#333',
+        fillStyle: '#ccc',
+        center: true,
+        enableDrag       : true,
+        enableChangeIndex: true
+    });
+
+    stage.addChild(line);
+    stage.addChild(line1);
     stage.addChild(rect);
     stage.addChild(image);
+    stage.addChild(text);
+
     stage.draw();
 
 </script>

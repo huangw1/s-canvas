@@ -45,12 +45,12 @@ export const getElementOffset = (element) => {
     };
 }
 
-export const getPointer = (event) => {
+export const getPointer = (event, inner = true) => {
     const element = event.target;
     const scroll = getScrollLeftTop(element);
     const offset = getElementOffset(element);
     return {
-        x: event.clientX + scroll.left - offset.left,
-        y: event.clientY + scroll.top - offset.top
+        x: inner ? (event.clientX + scroll.left - offset.left) : (event.clientX + scroll.left),
+        y: inner ? (event.clientY + scroll.top - offset.top) : (event.clientY + scroll.top)
     };
 };

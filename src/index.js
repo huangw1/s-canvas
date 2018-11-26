@@ -3,6 +3,8 @@ import CanvasManage from "./injection/canvas-manage";
 import {register, reverse} from "./utils";
 import Rectangular from "./shapes/rectangular";
 import Image from "./shapes/image";
+import Line from "./shapes/line";
+import Text from "./shapes/text";
 
 // todo 全局触发事件
 class SC {
@@ -12,6 +14,8 @@ class SC {
     objects = [];
 
     images = [];
+
+    tweens = [];
 
     element = null;
 
@@ -25,9 +29,15 @@ class SC {
 
     transY = 0;
 
-    scale = 0;
+    scale = 1;
+
+    requestId = null;
 
     isDragging = false;
+
+    isAnimating = false;
+
+    enableScale = false;
 
     enableGlobalTranslate = false;
 
@@ -79,12 +89,16 @@ class SC {
     }
 
     getImage(name) {
-        return this.imageManage.getImage(name).image
+        return this.imageManage.getImage(name).image;
     }
 
     _attachCanvasEvents() {
         const canvasManage = new CanvasManage(this);
         this.canvasManage = canvasManage;
+    }
+
+    getPoint() {
+        return this.canvasManage.getPoint();
     }
 
     // object being dragged
@@ -96,9 +110,53 @@ class SC {
         this._objects = reverse(this.objects);
         this.redraw();
     }
+
+    animate(tween) {
+        this.tweens.push(tween);
+        this.tick();
+    }
+
+    clearAnimate() {
+        this.tweens.length = 0;
+    }
+
+    stop() {
+        if(this.requestId) {
+            this.isAnimating = false;
+            cancelAnimationFrame(this.requestId);
+        }
+    }
+
+    tick() {
+        const requestFunc = () => {
+            if(!this.tweens.length) {
+                this.isAnimating = false;
+                return;
+            }
+            this.tweens.forEach((tween, i) => {
+                if(tween.finished) {
+                    this.tweens.splice(i--, 1);
+                } else if(tween.update) {
+                    tween.update();
+                } else if(typeof tween === 'function') {
+                    tween();
+                }
+            });
+            this.redraw();
+            this.requestId = requestAnimationFrame(requestFunc);
+        };
+        if(this.tweens.length) {
+            if(!this.isAnimating) {
+                this.isAnimating = true;
+                requestFunc();
+            }
+        }
+    }
 }
 
 register(SC, Rectangular.type, Rectangular);
 register(SC, Image.type, Image);
+register(SC, Line.type, Line);
+register(SC, Text.type, Text);
 
 window.SC = SC;

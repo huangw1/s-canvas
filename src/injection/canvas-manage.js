@@ -2,6 +2,11 @@ import {addListener, getPointer, removeListener} from "../utils/dom";
 
 class CanvasManage {
 
+    point = {
+        x: 0,
+        y: 0
+    };
+
     constructor(sc) {
         this.sc = sc;
         this.bindEvents();
@@ -11,6 +16,7 @@ class CanvasManage {
         const {element} = this.sc;
         addListener(element, 'mousedown', this.mouseDown);
         addListener(element, 'mousemove', this.mouseMove);
+        addListener(element, 'wheel', this.mouseScale);
     }
 
     mouseDown = (e) => {
@@ -24,7 +30,7 @@ class CanvasManage {
         const downItems = _objects.filter(item => {
             return item.isPointInner(x, y);
         });
-        const downItem = downItems[0]
+        const downItem = downItems[0];
         // 触发事件
         if (downItem) {
             if (downItem.enableChangeIndex) {
@@ -87,6 +93,8 @@ class CanvasManage {
     }
 
     mouseMove = (e) => {
+        Object.assign(this.point, getPointer(e, false));
+
         const {_objects} = this.sc;
         const {x, y} = getPointer(e);
         const draggingItem = _objects.filter(item => {
@@ -131,6 +139,27 @@ class CanvasManage {
                     item.hasEnter = false;
                 });
         }
+    }
+
+    mouseScale = (e) => {
+        if(this.sc.enableScale) {
+            const deltaY = e.deltaY;
+            if(deltaY > 0) {
+                if(this.sc.scale > 0.5) {
+                    this.sc.scale -= 0.2;
+                    this.sc.redraw();
+                }
+            } else {
+                if(this.sc.scale < 2) {
+                    this.sc.scale += 0.2;
+                    this.sc.redraw();
+                }
+            }
+        }
+    }
+
+    getPoint() {
+        return this.point;
     }
 }
 

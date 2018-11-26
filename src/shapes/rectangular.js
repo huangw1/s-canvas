@@ -11,13 +11,32 @@ class Rectangular extends Base {
     }
 
     draw() {
-        const {canvas, transX, transY} = this.sc;
-        const {fixed, startX, startY, width, height, fillStyle, moveX, moveY} = this;
+        const {
+            canvas,
+            transX,
+            transY
+        } = this.sc;
+        const {
+            fixed,
+            startX,
+            startY,
+            width,
+            height,
+            fillStyle,
+            moveX,
+            moveY
+        } = this;
 
         canvas.save();
+
+        // 逻辑问题
+        canvas.translate(startX + width / 2 + moveX, startY + height / 2 + moveY);
+        canvas.rotate((Math.PI / 180) * this.rotate);
+        canvas.translate(-(startX + width / 2 + moveX), -(startY + height / 2 + moveY));
+
         canvas.translate(moveX, moveY);
-        if(fixed) {
-            canvas.translate(transX, transY);
+        if (fixed) {
+            canvas.translate(-transX, -transY);
         }
         canvas.fillStyle = fillStyle;
         canvas.fillRect(startX, startY, width, height);

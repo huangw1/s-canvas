@@ -11,14 +11,31 @@ class Image extends Base {
     }
 
     draw() {
-        const {canvas, transX, transY} = this.sc;
-        const {fixed, startX, startY, width, height, moveX, moveY, name, sliceX, sliceY, sliceWidth, sliceHeight} = this;
-        const src = this.sc.getImage(name);
+        const {
+            canvas,
+            transX,
+            transY
+        } = this.sc;
+        const {
+            fixed,
+            startX,
+            startY,
+            width,
+            height,
+            moveX,
+            moveY,
+            image,
+            sliceX,
+            sliceY,
+            sliceWidth,
+            sliceHeight
+        } = this;
+        const src = this.sc.getImage(image);
 
         canvas.save();
         canvas.translate(moveX, moveY);
         if(fixed) {
-            canvas.translate(transX, transY);
+            canvas.translate(-transX, -transY);
         }
         if(sliceWidth && sliceHeight) {
             canvas.drawImage(src, sliceX, sliceY, sliceWidth, sliceHeight, startX, startY, width, height);

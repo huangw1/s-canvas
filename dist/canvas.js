@@ -1434,12 +1434,14 @@
 	};
 
 	var getPointer = function getPointer(event) {
+	    var inner = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
 	    var element = event.target;
 	    var scroll = getScrollLeftTop(element);
 	    var offset = getElementOffset(element);
 	    return {
-	        x: event.clientX + scroll.left - offset.left,
-	        y: event.clientY + scroll.top - offset.top
+	        x: inner ? event.clientX + scroll.left - offset.left : event.clientX + scroll.left,
+	        y: inner ? event.clientY + scroll.top - offset.top : event.clientY + scroll.top
 	    };
 	};
 
@@ -1448,6 +1450,11 @@
 	        var _this = this;
 
 	        _classCallCheck(this, CanvasManage);
+
+	        this.point = {
+	            x: 0,
+	            y: 0
+	        };
 
 	        this.mouseDown = function (e) {
 	            var _sc = _this.sc,
@@ -1534,6 +1541,8 @@
 	        };
 
 	        this.mouseMove = function (e) {
+	            _Object$assign(_this.point, getPointer(e, false));
+
 	            var _objects = _this.sc._objects;
 
 	            var _getPointer5 = getPointer(e),
@@ -1580,6 +1589,23 @@
 	            }
 	        };
 
+	        this.mouseScale = function (e) {
+	            if (_this.sc.enableScale) {
+	                var deltaY = e.deltaY;
+	                if (deltaY > 0) {
+	                    if (_this.sc.scale > 0.5) {
+	                        _this.sc.scale -= 0.2;
+	                        _this.sc.redraw();
+	                    }
+	                } else {
+	                    if (_this.sc.scale < 2) {
+	                        _this.sc.scale += 0.2;
+	                        _this.sc.redraw();
+	                    }
+	                }
+	            }
+	        };
+
 	        this.sc = sc;
 	        this.bindEvents();
 	    }
@@ -1591,6 +1617,12 @@
 
 	            addListener(element, 'mousedown', this.mouseDown);
 	            addListener(element, 'mousemove', this.mouseMove);
+	            addListener(element, 'wheel', this.mouseScale);
+	        }
+	    }, {
+	        key: 'getPoint',
+	        value: function getPoint() {
+	            return this.point;
 	        }
 	    }]);
 
@@ -1607,9 +1639,56 @@
 	    return result;
 	};
 
+	// register shape component
 	var register = function register(SC, name, Component) {
 	    SC.prototype[name] = function (setting) {
 	        return new Component(this, setting);
+	    };
+	};
+
+	var textEllipsis = function textEllipsis(canvas, text, maxWidth) {
+	    var textWidth = canvas.measureText(text).width;
+	    var ellipsis = '...';
+	    var ellipsisWidth = canvas.measureText(ellipsis).width;
+	    if (textWidth <= maxWidth || textWidth <= ellipsisWidth) {
+	        return text;
+	    }
+	    var length = text.length;
+	    while (textWidth >= maxWidth - ellipsisWidth && length-- > 0) {
+	        text = text.substring(0, length);
+	        textWidth = canvas.measureText(text).width;
+	    }
+	    return text + ellipsis;
+	};
+
+	// bezier
+	var getCtrlPoint = function getCtrlPoint(ps, i, a, b) {
+	    var pAx = void 0,
+	        pAy = void 0,
+	        pBx = void 0,
+	        pBy = void 0;
+	    if (!a || !b) {
+	        a = 0.25;
+	        b = 0.25;
+	    }
+	    if (i < 1) {
+	        pAx = ps[0][0] + (ps[1][0] - ps[0][0]) * a;
+	        pAy = ps[0][1] + (ps[1][1] - ps[0][1]) * a;
+	    } else {
+	        pAx = ps[i][0] + (ps[i + 1][0] - ps[i - 1][0]) * a;
+	        pAy = ps[i][1] + (ps[i + 1][1] - ps[i - 1][1]) * a;
+	    }
+	    if (i > ps.length - 3) {
+	        var last = ps.length - 1;
+	        pBx = ps[last][0] - (ps[last][0] - ps[last - 1][0]) * b;
+	        pBy = ps[last][1] - (ps[last][1] - ps[last - 1][1]) * b;
+	    } else {
+	        pBx = ps[i + 1][0] - (ps[i + 2][0] - ps[i][0]) * b;
+	        pBy = ps[i + 1][1] - (ps[i + 2][1] - ps[i][1]) * b;
+	    }
+	    return {
+	        pA: { x: pAx, y: pAy },
+	        pB: { x: pBx, y: pBy }
 	    };
 	};
 
@@ -2260,6 +2339,181 @@
 	    return KeyPress;
 	}(EventBus);
 
+	/**!
+	 * code from https://github.com/LiikeJS/Liike/blob/master/src/ease.js
+	 */
+	var easeInBy = function easeInBy(power) {
+	    return function (t) {
+	        return Math.pow(t, power);
+	    };
+	};
+	var easeOutBy = function easeOutBy(power) {
+	    return function (t) {
+	        return 1 - Math.abs(Math.pow(t - 1, power));
+	    };
+	};
+	var easeInOutBy = function easeInOutBy(power) {
+	    return function (t) {
+	        return t < 0.5 ? easeInBy(power)(t * 2) / 2 : easeOutBy(power)(t * 2 - 1) / 2 + 0.5;
+	    };
+	};
+
+	var linear = function linear(t) {
+	    return t;
+	};
+	var quadIn = easeInBy(2);
+	var quadOut = easeOutBy(2);
+	var quadInOut = easeInOutBy(2);
+	var cubicIn = easeInBy(3);
+	var cubicOut = easeOutBy(3);
+	var cubicInOut = easeInOutBy(3);
+	var quartIn = easeInBy(4);
+	var quartOut = easeOutBy(4);
+	var quartInOut = easeInOutBy(4);
+	var quintIn = easeInBy(5);
+	var quintOut = easeOutBy(5);
+	var quintInOut = easeInOutBy(5);
+	var sineIn = function sineIn(t) {
+	    return 1 + Math.sin(Math.PI / 2 * t - Math.PI / 2);
+	};
+	var sineOut = function sineOut(t) {
+	    return Math.sin(Math.PI / 2 * t);
+	};
+	var sineInOut = function sineInOut(t) {
+	    return (1 + Math.sin(Math.PI * t - Math.PI / 2)) / 2;
+	};
+	var bounceOut = function bounceOut(t) {
+	    var s = 7.5625;
+	    var p = 2.75;
+
+	    if (t < 1 / p) {
+	        return s * t * t;
+	    }
+	    if (t < 2 / p) {
+	        t -= 1.5 / p;
+	        return s * t * t + 0.75;
+	    }
+	    if (t < 2.5 / p) {
+	        t -= 2.25 / p;
+	        return s * t * t + 0.9375;
+	    }
+	    t -= 2.625 / p;
+	    return s * t * t + 0.984375;
+	};
+	var bounceIn = function bounceIn(t) {
+	    return 1 - bounceOut(1 - t);
+	};
+	var bounceInOut = function bounceInOut(t) {
+	    return t < 0.5 ? bounceIn(t * 2) * 0.5 : bounceOut(t * 2 - 1) * 0.5 + 0.5;
+	};
+
+	var easing = /*#__PURE__*/Object.freeze({
+		linear: linear,
+		quadIn: quadIn,
+		quadOut: quadOut,
+		quadInOut: quadInOut,
+		cubicIn: cubicIn,
+		cubicOut: cubicOut,
+		cubicInOut: cubicInOut,
+		quartIn: quartIn,
+		quartOut: quartOut,
+		quartInOut: quartInOut,
+		quintIn: quintIn,
+		quintOut: quintOut,
+		quintInOut: quintInOut,
+		sineIn: sineIn,
+		sineOut: sineOut,
+		sineInOut: sineInOut,
+		bounceOut: bounceOut,
+		bounceIn: bounceIn,
+		bounceInOut: bounceInOut
+	});
+
+	var Tween = function () {
+	    function Tween(props) {
+	        _classCallCheck(this, Tween);
+
+	        var from = props.from,
+	            to = props.to,
+	            _props$duration = props.duration,
+	            duration = _props$duration === undefined ? 500 : _props$duration,
+	            _props$delay = props.delay,
+	            delay = _props$delay === undefined ? 0 : _props$delay,
+	            _props$easing = props.easing,
+	            easing = _props$easing === undefined ? 'linear' : _props$easing,
+	            _props$onStart = props.onStart,
+	            onStart = _props$onStart === undefined ? noop : _props$onStart,
+	            _props$onUpdate = props.onUpdate,
+	            onUpdate = _props$onUpdate === undefined ? noop : _props$onUpdate,
+	            _props$onFinish = props.onFinish,
+	            onFinish = _props$onFinish === undefined ? noop : _props$onFinish;
+
+
+	        for (var key in from) {
+	            if (to[key] === undefined) {
+	                to[key] = from[key];
+	            }
+	        }
+	        for (var _key in to) {
+	            if (from[_key] === undefined) {
+	                from[_key] = to[_key];
+	            }
+	        }
+
+	        _Object$assign(this, {
+	            from: from,
+	            to: to,
+	            duration: duration,
+	            delay: delay,
+	            easing: easing,
+	            onStart: onStart,
+	            onUpdate: onUpdate,
+	            onFinish: onFinish,
+	            startTime: Date.now() + delay,
+	            elapsed: 0,
+	            started: false,
+	            finished: false
+	        });
+	    }
+
+	    _createClass(Tween, [{
+	        key: 'update',
+	        value: function update() {
+	            var keys = {};
+	            var now = Date.now();
+	            if (now < this.startTime) {
+	                return;
+	            }
+
+	            if (this.elapsed >= this.duration) {
+	                if (!this.finished) {
+	                    this.finished = true;
+	                    this.onFinish(keys);
+	                }
+	                return;
+	            }
+
+	            this.elapsed = now - this.startTime;
+	            if (this.elapsed > this.duration) {
+	                this.elapsed = this.duration;
+	            }
+
+	            for (var key in this.to) {
+	                keys[key] = this.from[key] + (this.to[key] - this.from[key]) * easing[this.easing](this.elapsed / this.duration);
+	            }
+
+	            if (!this.started) {
+	                this.started = true;
+	                this.onStart(keys);
+	            }
+
+	            this.onUpdate(keys);
+	        }
+	    }]);
+
+	    return Tween;
+	}();
+
 	var Base = function (_EventBus) {
 	    _inherits(Base, _EventBus);
 
@@ -2272,8 +2526,10 @@
 	            zIndex: 0,
 	            moveX: 0,
 	            moveY: 0,
+	            rotate: 0,
 	            fixed: false,
 	            isDragging: false,
+	            isAnimating: false,
 	            enableDrag: false,
 	            hasEnter: false,
 	            hasDragIn: false,
@@ -2287,6 +2543,40 @@
 	        value: function config(setting) {
 	            _Object$assign(this, setting);
 	            return this;
+	        }
+	    }, {
+	        key: "animateTo",
+	        value: function animateTo(keys) {
+	            var _this2 = this;
+
+	            var config = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+	            _Object$assign(config, {
+	                from: {},
+	                to: keys
+	            });
+
+	            for (var key in keys) {
+	                config.from[key] = this[key];
+	            }
+	            var onStart = config.onStart || noop;
+	            config.onStart = function () {
+	                _this2.isAnimating = true;
+	                onStart();
+	            };
+	            var onUpdate = config.onUpdate || noop;
+	            config.onUpdate = function (props) {
+	                _Object$assign(_this2, props);
+	                onUpdate(props);
+	            };
+	            var onFinish = config.onFinish || noop;
+	            config.onFinish = function () {
+	                _this2.isAnimating = false;
+	                onFinish();
+	            };
+
+	            var tween = new Tween(config);
+	            this.sc.animate(tween);
 	        }
 	    }]);
 
@@ -2323,9 +2613,15 @@
 
 
 	            canvas.save();
+
+	            // 逻辑问题
+	            canvas.translate(startX + width / 2 + moveX, startY + height / 2 + moveY);
+	            canvas.rotate(Math.PI / 180 * this.rotate);
+	            canvas.translate(-(startX + width / 2 + moveX), -(startY + height / 2 + moveY));
+
 	            canvas.translate(moveX, moveY);
 	            if (fixed) {
-	                canvas.translate(transX, transY);
+	                canvas.translate(-transX, -transY);
 	            }
 	            canvas.fillStyle = fillStyle;
 	            canvas.fillRect(startX, startY, width, height);
@@ -2392,18 +2688,18 @@
 	                height = this.height,
 	                moveX = this.moveX,
 	                moveY = this.moveY,
-	                name = this.name,
+	                image = this.image,
 	                sliceX = this.sliceX,
 	                sliceY = this.sliceY,
 	                sliceWidth = this.sliceWidth,
 	                sliceHeight = this.sliceHeight;
 
-	            var src = this.sc.getImage(name);
+	            var src = this.sc.getImage(image);
 
 	            canvas.save();
 	            canvas.translate(moveX, moveY);
 	            if (fixed) {
-	                canvas.translate(transX, transY);
+	                canvas.translate(-transX, -transY);
 	            }
 	            if (sliceWidth && sliceHeight) {
 	                canvas.drawImage(src, sliceX, sliceY, sliceWidth, sliceHeight, startX, startY, width, height);
@@ -2447,6 +2743,199 @@
 
 	Image$1.type = 'image';
 
+	var Line = function (_Base) {
+	    _inherits(Line, _Base);
+
+	    function Line(sc, setting) {
+	        _classCallCheck(this, Line);
+
+	        var _this = _possibleConstructorReturn(this, (Line.__proto__ || _Object$getPrototypeOf(Line)).call(this, setting));
+
+	        _this.sc = sc;
+	        return _this;
+	    }
+
+	    _createClass(Line, [{
+	        key: "draw",
+	        value: function draw() {
+	            var _sc = this.sc,
+	                canvas = _sc.canvas,
+	                transX = _sc.transX,
+	                transY = _sc.transY;
+	            var fixed = this.fixed,
+	                moveX = this.moveX,
+	                moveY = this.moveY,
+	                matrix = this.matrix,
+	                lineWidth = this.lineWidth,
+	                lineDash = this.lineDash,
+	                strokeStyle = this.strokeStyle,
+	                lineCap = this.lineCap,
+	                lineJoin = this.lineJoin,
+	                smooth = this.smooth;
+
+
+	            canvas.save();
+	            canvas.translate(moveX, moveY);
+	            if (fixed) {
+	                canvas.translate(-transX, -transY);
+	            }
+	            canvas.lineWidth = lineWidth;
+	            canvas.strokeStyle = strokeStyle;
+	            canvas.beginPath();
+	            if (lineDash && Array.isArray(lineDash)) {
+	                canvas.setLineDash(lineDash);
+	            }
+	            if (lineCap) {
+	                canvas.lineCap = lineCap;
+	            }
+	            if (lineJoin) {
+	                canvas.lineJoin = lineJoin;
+	            }
+	            if (smooth) {
+	                matrix.forEach(function (point, i) {
+	                    if (i === 0) {
+	                        canvas.moveTo(point[0], point[1]);
+	                    } else {
+	                        var cMatrix = getCtrlPoint(matrix, i - 1);
+	                        canvas.bezierCurveTo(cMatrix.pA.x, cMatrix.pA.y, cMatrix.pB.x, cMatrix.pB.y, point[0], point[1]);
+	                    }
+	                });
+	            } else {
+	                matrix.forEach(function (point, i) {
+	                    if (i === 0) {
+	                        canvas.moveTo(point[0], point[1]);
+	                    } else {
+	                        canvas.lineTo(point[0], point[1]);
+	                    }
+	                });
+	            }
+	            canvas.stroke();
+	            canvas.closePath();
+	            canvas.restore();
+	        }
+	    }, {
+	        key: "getBounds",
+	        value: function getBounds() {
+	            return {};
+	        }
+	    }, {
+	        key: "isPointInner",
+	        value: function isPointInner() {
+	            return false;
+	        }
+	    }]);
+
+	    return Line;
+	}(Base);
+
+	Line.type = 'line';
+
+	var Text = function (_Base) {
+	    _inherits(Text, _Base);
+
+	    function Text(sc, setting) {
+	        _classCallCheck(this, Text);
+
+	        var _this = _possibleConstructorReturn(this, (Text.__proto__ || _Object$getPrototypeOf(Text)).call(this, setting));
+
+	        _this.sc = sc;
+	        return _this;
+	    }
+
+	    _createClass(Text, [{
+	        key: "draw",
+	        value: function draw() {
+	            var _sc = this.sc,
+	                canvas = _sc.canvas,
+	                transX = _sc.transX,
+	                transY = _sc.transY;
+	            var fixed = this.fixed,
+	                startX = this.startX,
+	                startY = this.startY,
+	                width = this.width,
+	                height = this.height,
+	                moveX = this.moveX,
+	                moveY = this.moveY,
+	                text = this.text,
+	                backgroundColor = this.backgroundColor,
+	                font = this.font,
+	                strokeStyle = this.strokeStyle,
+	                fillStyle = this.fillStyle,
+	                _paddingLeft = this.paddingLeft,
+	                paddingLeft = _paddingLeft === undefined ? 0 : _paddingLeft,
+	                _paddingTop = this.paddingTop,
+	                paddingTop = _paddingTop === undefined ? 0 : _paddingTop,
+	                center = this.center;
+
+
+	            canvas.save();
+	            canvas.translate(moveX, moveY);
+	            if (fixed) {
+	                canvas.translate(-transX, -transY);
+	            }
+	            if (backgroundColor) {
+	                canvas.save();
+	                canvas.fillStyle = backgroundColor;
+	                canvas.fillRect(startX, startY, width, height);
+	                canvas.restore();
+	            }
+	            canvas.font = font;
+	            canvas.textBaseline = 'top';
+	            var textWidth = canvas.measureText(text).width;
+	            var ellipsisText = textEllipsis(canvas, text, width - paddingLeft * 2);
+	            if (strokeStyle) {
+	                canvas.strokeStyle = strokeStyle;
+	                if (center) {
+	                    canvas.strokeText(ellipsisText, startX + (width - textWidth - paddingLeft * 2) / 2, startY + paddingTop);
+	                } else {
+	                    canvas.strokeText(ellipsisText, startX + paddingLeft, startY + paddingTop);
+	                }
+	            } else {
+	                canvas.fillStyle = fillStyle;
+	                if (center) {
+	                    canvas.fillText(ellipsisText, startX + (width - textWidth - paddingLeft * 2) / 2, startY + paddingTop);
+	                } else {
+	                    canvas.fillText(ellipsisText, startX + paddingLeft, startY + paddingTop);
+	                }
+	            }
+
+	            canvas.restore();
+	        }
+	    }, {
+	        key: "getBounds",
+	        value: function getBounds() {
+	            var startX = this.startX,
+	                startY = this.startY,
+	                width = this.width,
+	                height = this.height,
+	                moveX = this.moveX,
+	                moveY = this.moveY;
+
+	            return {
+	                startX: startX + moveX,
+	                startY: startY + moveY,
+	                width: width,
+	                height: height
+	            };
+	        }
+	    }, {
+	        key: "isPointInner",
+	        value: function isPointInner(x, y) {
+	            var _getBounds = this.getBounds(),
+	                startX = _getBounds.startX,
+	                startY = _getBounds.startY,
+	                width = _getBounds.width,
+	                height = _getBounds.height;
+
+	            return x > startX && x < startX + width && y > startY && y < startY + height;
+	        }
+	    }]);
+
+	    return Text;
+	}(Base);
+
+	Text.type = 'text';
+
 	// todo 全局触发事件
 
 	var SC = function () {
@@ -2456,14 +2945,18 @@
 	        this.version = '1.0.0';
 	        this.objects = [];
 	        this.images = [];
+	        this.tweens = [];
 	        this.element = null;
 	        this.canvas = null;
 	        this.width = 0;
 	        this.height = 0;
 	        this.transX = 0;
 	        this.transY = 0;
-	        this.scale = 0;
+	        this.scale = 1;
+	        this.requestId = null;
 	        this.isDragging = false;
+	        this.isAnimating = false;
+	        this.enableScale = false;
 	        this.enableGlobalTranslate = false;
 
 	        this.config(setting);
@@ -2535,6 +3028,11 @@
 	            var canvasManage = new CanvasManage(this);
 	            this.canvasManage = canvasManage;
 	        }
+	    }, {
+	        key: "getPoint",
+	        value: function getPoint() {
+	            return this.canvasManage.getPoint();
+	        }
 
 	        // object being dragged
 
@@ -2548,6 +3046,54 @@
 	            this._objects = reverse(this.objects);
 	            this.redraw();
 	        }
+	    }, {
+	        key: "animate",
+	        value: function animate(tween) {
+	            this.tweens.push(tween);
+	            this.tick();
+	        }
+	    }, {
+	        key: "clearAnimate",
+	        value: function clearAnimate() {
+	            this.tweens.length = 0;
+	        }
+	    }, {
+	        key: "stop",
+	        value: function stop() {
+	            if (this.requestId) {
+	                this.isAnimating = false;
+	                cancelAnimationFrame(this.requestId);
+	            }
+	        }
+	    }, {
+	        key: "tick",
+	        value: function tick() {
+	            var _this2 = this;
+
+	            var requestFunc = function requestFunc() {
+	                if (!_this2.tweens.length) {
+	                    _this2.isAnimating = false;
+	                    return;
+	                }
+	                _this2.tweens.forEach(function (tween, i) {
+	                    if (tween.finished) {
+	                        _this2.tweens.splice(i--, 1);
+	                    } else if (tween.update) {
+	                        tween.update();
+	                    } else if (typeof tween === 'function') {
+	                        tween();
+	                    }
+	                });
+	                _this2.redraw();
+	                _this2.requestId = requestAnimationFrame(requestFunc);
+	            };
+	            if (this.tweens.length) {
+	                if (!this.isAnimating) {
+	                    this.isAnimating = true;
+	                    requestFunc();
+	                }
+	            }
+	        }
 	    }]);
 
 	    return SC;
@@ -2555,6 +3101,8 @@
 
 	register(SC, Rectangular.type, Rectangular);
 	register(SC, Image$1.type, Image$1);
+	register(SC, Line.type, Line);
+	register(SC, Text.type, Text);
 
 	window.SC = SC;
 
