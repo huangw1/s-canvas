@@ -5,8 +5,12 @@ import Rectangular from "./shapes/rectangular";
 import Image from "./shapes/image";
 import Line from "./shapes/line";
 import Text from "./shapes/text";
+import ctxWrapper from "./core/ctx";
 
-// todo 全局触发事件
+/**
+ * todo 全局触发事件
+ * todo 剪切不在边框内
+ */
 class SC {
 
     version = '1.0.0';
@@ -15,7 +19,7 @@ class SC {
 
     images = [];
 
-    tweens = [];
+    tweenList = [];
 
     element = null;
 
@@ -45,7 +49,7 @@ class SC {
         this.config(setting);
 
         this.element = document.getElementById(id);
-        this.canvas = this.element.getContext('2d');
+        this.canvas = ctxWrapper(this.element.getContext('2d'));
         this.element.width = this.width;
         this.element.height = this.height;
     }
@@ -77,11 +81,16 @@ class SC {
     }
 
     redraw() {
-        this.clear();
+        // bug
         this.canvas.save();
-        this.canvas.translate(this.transX, this.transY);
-        this._draw();
+        this.canvas.setTransform(1, 0, 0, 1, 0, 0);
+        this.clear();
         this.canvas.restore();
+        this.canvas.translate(200, 200);
+        this.canvas.scale(this.scale, this.scale);
+        this.canvas.translate(-200, -200);
+        this.canvas.translate(this.transX / this.scale, this.transY / this.scale);
+        this._draw();
     }
 
     clear() {
@@ -93,12 +102,7 @@ class SC {
     }
 
     _attachCanvasEvents() {
-        const canvasManage = new CanvasManage(this);
-        this.canvasManage = canvasManage;
-    }
-
-    getPoint() {
-        return this.canvasManage.getPoint();
+        this.canvasManage = new CanvasManage(this);
     }
 
     // object being dragged
@@ -112,16 +116,16 @@ class SC {
     }
 
     animate(tween) {
-        this.tweens.push(tween);
+        this.tweenList.push(tween);
         this.tick();
     }
 
     clearAnimate() {
-        this.tweens.length = 0;
+        this.tweenList.length = 0;
     }
 
     stop() {
-        if(this.requestId) {
+        if (this.requestId) {
             this.isAnimating = false;
             cancelAnimationFrame(this.requestId);
         }
@@ -129,24 +133,24 @@ class SC {
 
     tick() {
         const requestFunc = () => {
-            if(!this.tweens.length) {
+            if (!this.tweenList.length) {
                 this.isAnimating = false;
                 return;
             }
-            this.tweens.forEach((tween, i) => {
-                if(tween.finished) {
-                    this.tweens.splice(i--, 1);
-                } else if(tween.update) {
+            this.tweenList.forEach((tween, i) => {
+                if (tween.finished) {
+                    this.tweenList.splice(i--, 1);
+                } else if (tween.update) {
                     tween.update();
-                } else if(typeof tween === 'function') {
+                } else if (typeof tween === 'function') {
                     tween();
                 }
             });
             this.redraw();
             this.requestId = requestAnimationFrame(requestFunc);
         };
-        if(this.tweens.length) {
-            if(!this.isAnimating) {
+        if (this.tweenList.length) {
+            if (!this.isAnimating) {
                 this.isAnimating = true;
                 requestFunc();
             }

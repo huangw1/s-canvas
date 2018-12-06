@@ -1,7 +1,7 @@
 import * as easing from './easing';
 import {noop} from "../utils";
 
-export default class Tween {
+class Tween {
 
     constructor(props) {
         const {
@@ -73,5 +73,6 @@ export default class Tween {
 
         this.onUpdate(keys);
     }
-
 }
+
+export default Tween

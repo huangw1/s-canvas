@@ -2,14 +2,14 @@ import {addListener, getPointer, removeListener} from "../utils/dom";
 
 class CanvasManage {
 
-    point = {
-        x: 0,
-        y: 0
-    };
-
     constructor(sc) {
         this.sc = sc;
         this.bindEvents();
+    }
+
+    setCursor(cursor) {
+        const {element} = this.sc;
+        element.style.cursor = cursor;
     }
 
     bindEvents() {
@@ -75,26 +75,27 @@ class CanvasManage {
         }
 
         if (enableGlobalTranslate && !downItems.length) {
+            this.setCursor('move');
             const globalMove = (e) => {
                 const {x, y} = getPointer(e);
                 this.sc.transX = this.sc.transX + x - this.cacheX;
                 this.sc.transY = this.sc.transY + y - this.cacheY;
+                this.sc.redraw();
                 this.cacheX = x;
                 this.cacheY = y;
-            }
+            };
 
             const globalUp = () => {
+                this.setCursor('default');
                 removeListener(document, 'mousemove', globalMove);
                 removeListener(document, 'mouseup', globalUp);
-            }
+            };
             addListener(document, 'mousemove', globalMove);
             addListener(document, 'mouseup', globalUp);
         }
     }
 
     mouseMove = (e) => {
-        Object.assign(this.point, getPointer(e, false));
-
         const {_objects} = this.sc;
         const {x, y} = getPointer(e);
         const draggingItem = _objects.filter(item => {
@@ -146,20 +147,16 @@ class CanvasManage {
             const deltaY = e.deltaY;
             if(deltaY > 0) {
                 if(this.sc.scale > 0.5) {
-                    this.sc.scale -= 0.2;
+                    this.sc.scale -= 0.1;
                     this.sc.redraw();
                 }
             } else {
                 if(this.sc.scale < 2) {
-                    this.sc.scale += 0.2;
+                    this.sc.scale += 0.1;
                     this.sc.redraw();
                 }
             }
         }
-    }
-
-    getPoint() {
-        return this.point;
     }
 }
 

@@ -1451,11 +1451,6 @@
 
 	        _classCallCheck(this, CanvasManage);
 
-	        this.point = {
-	            x: 0,
-	            y: 0
-	        };
-
 	        this.mouseDown = function (e) {
 	            var _sc = _this.sc,
 	                _objects = _sc._objects,
@@ -1520,6 +1515,7 @@
 	            }
 
 	            if (enableGlobalTranslate && !downItems.length) {
+	                _this.setCursor('move');
 	                var globalMove = function globalMove(e) {
 	                    var _getPointer4 = getPointer(e),
 	                        x = _getPointer4.x,
@@ -1527,11 +1523,13 @@
 
 	                    _this.sc.transX = _this.sc.transX + x - _this.cacheX;
 	                    _this.sc.transY = _this.sc.transY + y - _this.cacheY;
+	                    _this.sc.redraw();
 	                    _this.cacheX = x;
 	                    _this.cacheY = y;
 	                };
 
 	                var globalUp = function globalUp() {
+	                    _this.setCursor('default');
 	                    removeListener(document, 'mousemove', globalMove);
 	                    removeListener(document, 'mouseup', globalUp);
 	                };
@@ -1541,8 +1539,6 @@
 	        };
 
 	        this.mouseMove = function (e) {
-	            _Object$assign(_this.point, getPointer(e, false));
-
 	            var _objects = _this.sc._objects;
 
 	            var _getPointer5 = getPointer(e),
@@ -1594,12 +1590,12 @@
 	                var deltaY = e.deltaY;
 	                if (deltaY > 0) {
 	                    if (_this.sc.scale > 0.5) {
-	                        _this.sc.scale -= 0.2;
+	                        _this.sc.scale -= 0.1;
 	                        _this.sc.redraw();
 	                    }
 	                } else {
 	                    if (_this.sc.scale < 2) {
-	                        _this.sc.scale += 0.2;
+	                        _this.sc.scale += 0.1;
 	                        _this.sc.redraw();
 	                    }
 	                }
@@ -1611,6 +1607,13 @@
 	    }
 
 	    _createClass(CanvasManage, [{
+	        key: 'setCursor',
+	        value: function setCursor(cursor) {
+	            var element = this.sc.element;
+
+	            element.style.cursor = cursor;
+	        }
+	    }, {
 	        key: 'bindEvents',
 	        value: function bindEvents() {
 	            var element = this.sc.element;
@@ -1618,11 +1621,6 @@
 	            addListener(element, 'mousedown', this.mouseDown);
 	            addListener(element, 'mousemove', this.mouseMove);
 	            addListener(element, 'wheel', this.mouseScale);
-	        }
-	    }, {
-	        key: 'getPoint',
-	        value: function getPoint() {
-	            return this.point;
 	        }
 	    }]);
 
@@ -1691,6 +1689,72 @@
 	        pB: { x: pBx, y: pBy }
 	    };
 	};
+
+	var _createProperty = function (object, index, value) {
+	  if (index in object) _objectDp.f(object, index, _propertyDesc(0, value));
+	  else object[index] = value;
+	};
+
+	_export(_export.S + _export.F * !_iterDetect(function (iter) { }), 'Array', {
+	  // 22.1.2.1 Array.from(arrayLike, mapfn = undefined, thisArg = undefined)
+	  from: function from(arrayLike /* , mapfn = undefined, thisArg = undefined */) {
+	    var O = _toObject(arrayLike);
+	    var C = typeof this == 'function' ? this : Array;
+	    var aLen = arguments.length;
+	    var mapfn = aLen > 1 ? arguments[1] : undefined;
+	    var mapping = mapfn !== undefined;
+	    var index = 0;
+	    var iterFn = core_getIteratorMethod(O);
+	    var length, result, step, iterator;
+	    if (mapping) mapfn = _ctx(mapfn, aLen > 2 ? arguments[2] : undefined, 2);
+	    // if object isn't iterable or it's array with default iterator - use simple case
+	    if (iterFn != undefined && !(C == Array && _isArrayIter(iterFn))) {
+	      for (iterator = iterFn.call(O), result = new C(); !(step = iterator.next()).done; index++) {
+	        _createProperty(result, index, mapping ? _iterCall(iterator, mapfn, [step.value, index], true) : step.value);
+	      }
+	    } else {
+	      length = _toLength(O.length);
+	      for (result = new C(length); length > index; index++) {
+	        _createProperty(result, index, mapping ? mapfn(O[index], index) : O[index]);
+	      }
+	    }
+	    result.length = index;
+	    return result;
+	  }
+	});
+
+	var from_1 = _core.Array.from;
+
+	var from_1$1 = createCommonjsModule(function (module) {
+	module.exports = { "default": from_1, __esModule: true };
+	});
+
+	unwrapExports(from_1$1);
+
+	var toConsumableArray = createCommonjsModule(function (module, exports) {
+
+	exports.__esModule = true;
+
+
+
+	var _from2 = _interopRequireDefault(from_1$1);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = function (arr) {
+	  if (Array.isArray(arr)) {
+	    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
+	      arr2[i] = arr[i];
+	    }
+
+	    return arr2;
+	  } else {
+	    return (0, _from2.default)(arr);
+	  }
+	};
+	});
+
+	var _toConsumableArray = unwrapExports(toConsumableArray);
 
 	// most Object methods by ES6 should accept primitives
 
@@ -2514,13 +2578,16 @@
 	    return Tween;
 	}();
 
-	var Base = function (_EventBus) {
-	    _inherits(Base, _EventBus);
+	var Geometry = function (_EventBus) {
+	    _inherits(Geometry, _EventBus);
 
-	    function Base(settings) {
-	        _classCallCheck(this, Base);
+	    function Geometry(settings) {
+	        _classCallCheck(this, Geometry);
 
-	        var _this = _possibleConstructorReturn(this, (Base.__proto__ || _Object$getPrototypeOf(Base)).call(this));
+	        var _this = _possibleConstructorReturn(this, (Geometry.__proto__ || _Object$getPrototypeOf(Geometry)).call(this));
+
+	        _this.bound = undefined;
+
 
 	        _Object$assign(_this, {
 	            zIndex: 0,
@@ -2538,7 +2605,7 @@
 	        return _this;
 	    }
 
-	    _createClass(Base, [{
+	    _createClass(Geometry, [{
 	        key: "config",
 	        value: function config(setting) {
 	            _Object$assign(this, setting);
@@ -2578,13 +2645,156 @@
 	            var tween = new Tween(config);
 	            this.sc.animate(tween);
 	        }
+	    }, {
+	        key: "move",
+	        value: function move() {
+	        }
+	    }, {
+	        key: "scale",
+	        value: function scale() {
+	        }
+	    }, {
+	        key: "clone",
+	        value: function clone() {}
 	    }]);
 
-	    return Base;
+	    return Geometry;
 	}(EventBus);
 
-	var Rectangular = function (_Base) {
-	    _inherits(Rectangular, _Base);
+	/**
+	 * 平方差
+	 * @param x1
+	 * @param y1
+	 * @param x2
+	 * @param y2
+	 * @returns {number}
+	 */
+	var squareDistance = function squareDistance(x1, y1, x2, y2) {
+	    var dx = x2 - x1;
+	    var dy = y2 - y1;
+	    return Math.sqrt(dx * dx + dy * dy);
+	};
+
+	/**
+	 * 点到线的距离
+	 * 根据向量点击判断：
+	 * 1. 0<t<1，投影在线段内
+	 * 2. t≥1，投影在延伸上，且同方向
+	 * 2. t≤0，投影在延伸上，且反方向
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param x2
+	 * @param y2
+	 */
+	var squareSegmentDistance = function squareSegmentDistance(x, y, x1, y1, x2, y2) {
+	    var dx = x2 - x1;
+	    var dy = y2 - y1;
+	    if (dx !== 0 || dy !== 0) {
+	        var t = ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy);
+	        if (t > 1) {
+	            x1 = x2;
+	            y1 = y2;
+	        } else if (t > 0) {
+	            x1 += t * dx;
+	            y1 += t * dy;
+	        }
+	    }
+	    return squareDistance(x, y, x1, y1);
+	};
+
+	/**
+	 * 获取外接框
+	 * @param point
+	 * @param x
+	 * @param y
+	 * @returns {boolean}
+	 */
+	var squareContainsPoint = function squareContainsPoint(point, x, y) {
+	    if (Array.isArray(point)) {
+	        return x >= point[0] && x <= point[2] && y >= point[1] && y <= point[3];
+	    } else {
+	        return x >= point.xMin && x <= point.xMax && y >= point.yMin && y <= point.yMax;
+	    }
+	};
+
+	/**
+	 * 长宽转坐标点
+	 * @param x
+	 * @param y
+	 * @param width
+	 * @param height
+	 * @returns {*[]}
+	 */
+	var pointFromSquare = function pointFromSquare(x, y, width, height) {
+	    return [x, y, x + width, y + height];
+	};
+
+	/**
+	 * 外围边框
+	 */
+	var Bound = function () {
+	    function Bound(x1, y1, x2, y2) {
+	        _classCallCheck(this, Bound);
+
+	        this.xMin = x1;
+	        this.xMax = x2;
+	        this.yMin = y1;
+	        this.yMax = y2;
+	    }
+
+	    _createClass(Bound, [{
+	        key: "extend",
+	        value: function extend(xMin, xMax, yMin, yMax) {
+	            if (this.xMin > xMin) {
+	                this.xMin = xMin;
+	            }
+	            if (this.xMax < xMax) {
+	                this.xMax = xMax;
+	            }
+	            if (this.yMin > yMin) {
+	                this.yMin = yMin;
+	            }
+	            if (this.yMax < yMax) {
+	                this.yMax = yMax;
+	            }
+	        }
+	    }, {
+	        key: "reset",
+	        value: function reset(x1, y1, x2, y2) {
+	            this.xMin = x1;
+	            this.xMax = x2;
+	            this.yMin = y1;
+	            this.yMax = y2;
+	        }
+	    }, {
+	        key: "centerX",
+	        get: function get() {
+	            return (this.xMin + this.xMax) / 2;
+	        }
+	    }, {
+	        key: "centerY",
+	        get: function get() {
+	            return (this.yMin + this.yMax) / 2;
+	        }
+	    }, {
+	        key: "width",
+	        get: function get() {
+	            return this.xMax - this.xMin;
+	        }
+	    }, {
+	        key: "height",
+	        get: function get() {
+	            return this.yMax - this.yMin;
+	        }
+	    }]);
+
+	    return Bound;
+	}();
+
+	var Rectangular = function (_Geometry) {
+	    _inherits(Rectangular, _Geometry);
 
 	    function Rectangular(sc, setting) {
 	        _classCallCheck(this, Rectangular);
@@ -2628,8 +2838,10 @@
 	            canvas.restore();
 	        }
 	    }, {
-	        key: "getBounds",
-	        value: function getBounds() {
+	        key: "getBound",
+	        value: function getBound() {
+	            var _bound;
+
 	            var startX = this.startX,
 	                startY = this.startY,
 	                width = this.width,
@@ -2637,33 +2849,29 @@
 	                moveX = this.moveX,
 	                moveY = this.moveY;
 
-	            return {
-	                startX: startX + moveX,
-	                startY: startY + moveY,
-	                width: width,
-	                height: height
-	            };
+	            var point = pointFromSquare(startX + moveX, startY + moveY, width, height);
+	            if (this.bound === undefined) {
+	                this.bound = new (Function.prototype.bind.apply(Bound, [null].concat(_toConsumableArray(point))))();
+	                return this.bound;
+	            }
+	            (_bound = this.bound).reset.apply(_bound, _toConsumableArray(point));
+	            return this.bound;
 	        }
 	    }, {
 	        key: "isPointInner",
 	        value: function isPointInner(x, y) {
-	            var _getBounds = this.getBounds(),
-	                startX = _getBounds.startX,
-	                startY = _getBounds.startY,
-	                width = _getBounds.width,
-	                height = _getBounds.height;
-
-	            return x > startX && x < startX + width && y > startY && y < startY + height;
+	            var bound = this.getBound();
+	            return squareContainsPoint(bound, x, y);
 	        }
 	    }]);
 
 	    return Rectangular;
-	}(Base);
+	}(Geometry);
 
 	Rectangular.type = 'rectangular';
 
-	var Image$1 = function (_Base) {
-	    _inherits(Image, _Base);
+	var Image$1 = function (_Geometry) {
+	    _inherits(Image, _Geometry);
 
 	    function Image(sc, setting) {
 	        _classCallCheck(this, Image);
@@ -2709,8 +2917,10 @@
 	            canvas.restore();
 	        }
 	    }, {
-	        key: "getBounds",
-	        value: function getBounds() {
+	        key: "getBound",
+	        value: function getBound() {
+	            var _bound;
+
 	            var startX = this.startX,
 	                startY = this.startY,
 	                width = this.width,
@@ -2718,33 +2928,29 @@
 	                moveX = this.moveX,
 	                moveY = this.moveY;
 
-	            return {
-	                startX: startX + moveX,
-	                startY: startY + moveY,
-	                width: width,
-	                height: height
-	            };
+	            var point = pointFromSquare(startX + moveX, startY + moveY, width, height);
+	            if (this.bound === undefined) {
+	                this.bound = new (Function.prototype.bind.apply(Bound, [null].concat(_toConsumableArray(point))))();
+	                return this.bound;
+	            }
+	            (_bound = this.bound).reset.apply(_bound, _toConsumableArray(point));
+	            return this.bound;
 	        }
 	    }, {
 	        key: "isPointInner",
 	        value: function isPointInner(x, y) {
-	            var _getBounds = this.getBounds(),
-	                startX = _getBounds.startX,
-	                startY = _getBounds.startY,
-	                width = _getBounds.width,
-	                height = _getBounds.height;
-
-	            return x > startX && x < startX + width && y > startY && y < startY + height;
+	            var bound = this.getBound();
+	            return squareContainsPoint(bound, x, y);
 	        }
 	    }]);
 
 	    return Image;
-	}(Base);
+	}(Geometry);
 
 	Image$1.type = 'image';
 
-	var Line = function (_Base) {
-	    _inherits(Line, _Base);
+	var Line = function (_Geometry) {
+	    _inherits(Line, _Geometry);
 
 	    function Line(sc, setting) {
 	        _classCallCheck(this, Line);
@@ -2814,24 +3020,45 @@
 	            canvas.restore();
 	        }
 	    }, {
-	        key: "getBounds",
-	        value: function getBounds() {
-	            return {};
+	        key: "getBound",
+	        value: function getBound() {
+	            var matrix = this.matrix;
+	            if (this.bound === undefined) {
+	                var point = matrix[0];
+	                var bound = new Bound(point[0], point[1], point[0], point[1]);
+	                for (var i = 1; i < matrix.length; i++) {
+	                    point = matrix[i];
+	                    bound.extend(point[0], point[1], point[0], point[1]);
+	                }
+	                this.bound = point;
+	            }
+	            return this.bound;
 	        }
 	    }, {
 	        key: "isPointInner",
-	        value: function isPointInner() {
-	            return false;
+	        value: function isPointInner(x, y) {
+	            var matrix = this.matrix;
+	            var find = false;
+	            for (var i = 0; i < matrix.length - 1; i++) {
+	                var p = matrix[i];
+	                var nextP = matrix[i + 1];
+	                var distance = squareSegmentDistance(x, y, p[0], p[1], nextP[0], nextP[1]);
+	                if (distance <= 1) {
+	                    find = true;
+	                    break;
+	                }
+	            }
+	            return find;
 	        }
 	    }]);
 
 	    return Line;
-	}(Base);
+	}(Geometry);
 
 	Line.type = 'line';
 
-	var Text = function (_Base) {
-	    _inherits(Text, _Base);
+	var Text = function (_Geometry) {
+	    _inherits(Text, _Geometry);
 
 	    function Text(sc, setting) {
 	        _classCallCheck(this, Text);
@@ -2859,6 +3086,8 @@
 	                text = this.text,
 	                backgroundColor = this.backgroundColor,
 	                font = this.font,
+	                _textBaseline = this.textBaseline,
+	                textBaseline = _textBaseline === undefined ? 'top' : _textBaseline,
 	                strokeStyle = this.strokeStyle,
 	                fillStyle = this.fillStyle,
 	                _paddingLeft = this.paddingLeft,
@@ -2880,7 +3109,7 @@
 	                canvas.restore();
 	            }
 	            canvas.font = font;
-	            canvas.textBaseline = 'top';
+	            canvas.textBaseline = textBaseline;
 	            var textWidth = canvas.measureText(text).width;
 	            var ellipsisText = textEllipsis(canvas, text, width - paddingLeft * 2);
 	            if (strokeStyle) {
@@ -2902,8 +3131,10 @@
 	            canvas.restore();
 	        }
 	    }, {
-	        key: "getBounds",
-	        value: function getBounds() {
+	        key: "getBound",
+	        value: function getBound() {
+	            var _bound;
+
 	            var startX = this.startX,
 	                startY = this.startY,
 	                width = this.width,
@@ -2911,32 +3142,231 @@
 	                moveX = this.moveX,
 	                moveY = this.moveY;
 
-	            return {
-	                startX: startX + moveX,
-	                startY: startY + moveY,
-	                width: width,
-	                height: height
-	            };
+	            var point = pointFromSquare(startX + moveX, startY + moveY, width, height);
+	            if (this.bound === undefined) {
+	                this.bound = new (Function.prototype.bind.apply(Bound, [null].concat(_toConsumableArray(point))))();
+	                return this.bound;
+	            }
+	            (_bound = this.bound).reset.apply(_bound, _toConsumableArray(point));
+	            return this.bound;
 	        }
 	    }, {
 	        key: "isPointInner",
 	        value: function isPointInner(x, y) {
-	            var _getBounds = this.getBounds(),
-	                startX = _getBounds.startX,
-	                startY = _getBounds.startY,
-	                width = _getBounds.width,
-	                height = _getBounds.height;
-
-	            return x > startX && x < startX + width && y > startY && y < startY + height;
+	            var bound = this.getBound();
+	            return squareContainsPoint(bound, x, y);
 	        }
 	    }]);
 
 	    return Text;
-	}(Base);
+	}(Geometry);
 
 	Text.type = 'text';
 
-	// todo 全局触发事件
+	/**
+	 * [ a c e ]
+	 * [ b d f ]
+	 * [ 0 0 1 ]
+	 */
+	var Transform = {
+	    tmp: new Array(6),
+
+	    create: function create() {
+	        return [1, 0, 0, 1, 0, 0];
+	    },
+	    set: function set(transform, a, b, c, d, e, f) {
+	        transform[0] = a;
+	        transform[1] = b;
+	        transform[2] = c;
+	        transform[3] = d;
+	        transform[4] = e;
+	        transform[5] = f;
+	        return transform;
+	    },
+	    setFromArray: function setFromArray(transform1, transform2) {
+	        transform1[0] = transform2[0];
+	        transform1[1] = transform2[1];
+	        transform1[2] = transform2[2];
+	        transform1[3] = transform2[3];
+	        transform1[4] = transform2[4];
+	        transform1[5] = transform2[5];
+	        return transform1;
+	    },
+	    reset: function reset() {
+	        return Transform.set(Transform.tmp, 1, 0, 0, 1, 0, 0);
+	    },
+
+
+	    /**
+	     * 获取坐标
+	     * @param transform
+	     * @param coordinate
+	     * @returns {*[]}
+	     */
+	    transform2D: function transform2D(transform, coordinate) {
+	        var x = transform[0] * coordinate[0] + transform[2] * coordinate[1] + transform[4];
+	        var y = transform[1] * coordinate[0] + transform[3] * coordinate[1] + transform[5];
+	        return [x, y];
+	    },
+
+
+	    /**
+	     * 矩阵变换
+	     * @param transform1
+	     * @param transform2
+	     * @returns {*}
+	     */
+	    multiply: function multiply(transform1, transform2) {
+	        var a1 = transform1[0];
+	        var b1 = transform1[1];
+	        var c1 = transform1[2];
+	        var d1 = transform1[3];
+	        var e1 = transform1[4];
+	        var f1 = transform1[5];
+	        var a2 = transform2[0];
+	        var b2 = transform2[1];
+	        var c2 = transform2[2];
+	        var d2 = transform2[3];
+	        var e2 = transform2[4];
+	        var f2 = transform2[5];
+
+	        transform1[0] = a1 * a2 + c1 * b2;
+	        transform1[1] = b1 * a2 + d1 * b2;
+	        transform1[2] = a1 * c2 + c1 * d2;
+	        transform1[3] = b1 * c2 + d1 * d2;
+	        transform1[4] = a1 * e2 + c1 * f2 + e1;
+	        transform1[5] = b1 * e2 + d1 * f2 + f1;
+
+	        return transform1;
+	    },
+	    rotate: function rotate(transform, angle) {
+	        var cos = Math.cos(angle);
+	        var sin = Math.sin(angle);
+
+	        return Transform.multiply(transform, Transform.set(Transform.tmp, cos, sin, -sin, cos, 0, 0));
+	    },
+	    scale: function scale(transform, x, y) {
+	        return Transform.multiply(transform, Transform.set(Transform.tmp, x, 0, 0, y, 0, 0));
+	    },
+
+
+	    translate: function translate(transform, dx, dy) {
+	        return Transform.multiply(transform, Transform.set(Transform.tmp, 1, 0, 0, 1, dx, dy));
+	    },
+
+	    invert: function invert(transform) {
+	        var det = Transform.determinant(transform);
+
+	        var a = transform[0];
+	        var b = transform[1];
+	        var c = transform[2];
+	        var d = transform[3];
+	        var e = transform[4];
+	        var f = transform[5];
+
+	        transform[0] = d / det;
+	        transform[1] = -b / det;
+	        transform[2] = -c / det;
+	        transform[3] = a / det;
+	        transform[4] = (c * f - d * e) / det;
+	        transform[5] = -(a * f - b * e) / det;
+
+	        return transform;
+	    },
+
+	    /**
+	     * 行列式
+	     * @param mat
+	     * @returns {number}
+	     */
+	    determinant: function determinant(mat) {
+	        return mat[0] * mat[3] - mat[1] * mat[2];
+	    }
+	};
+
+	/**
+	 * canvas context wrapper
+	 */
+
+	var Ctx = function () {
+	    function Ctx(ctx) {
+	        _classCallCheck(this, Ctx);
+
+	        this.ctx = ctx;
+	        this.matrix = Transform.create();
+	        this.matrixStack = [];
+	    }
+
+	    _createClass(Ctx, [{
+	        key: "save",
+	        value: function save() {
+	            this.ctx.save();
+	            this.matrixStack.push(this.matrix);
+	            this.matrix = Transform.multiply(Transform.create(), this.matrix);
+	        }
+	    }, {
+	        key: "restore",
+	        value: function restore() {
+	            this.ctx.restore();
+	            this.matrix = this.matrixStack.pop();
+	        }
+	    }, {
+	        key: "setMatrix",
+	        value: function setMatrix(matrix) {
+	            this.setTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+	        }
+	    }, {
+	        key: "getMatrix",
+	        value: function getMatrix() {
+	            return this.matrix;
+	        }
+	    }, {
+	        key: "setTransform",
+	        value: function setTransform(a, b, c, d, e, f) {
+	            this.ctx.setTransform(a, b, c, d, e, f);
+	        }
+	    }, {
+	        key: "transform",
+	        value: function transform(a, b, c, d, e, f) {
+	            var matrix = [a, b, c, d, e, f];
+	            this.matrix = Transform.multiply(this.matrix, matrix);
+	        }
+	    }, {
+	        key: "translate",
+	        value: function translate(x, y) {
+	            this.ctx.translate(x, y);
+	            this.matrix = Transform.translate(this.matrix, x, y);
+	        }
+	    }, {
+	        key: "scale",
+	        value: function scale(dx, dy) {
+	            this.ctx.scale(dx, dy);
+	            this.matrix = Transform.scale(this.matrix, dx, dy);
+	        }
+	    }, {
+	        key: "rotate",
+	        value: function rotate(angle) {
+	            this.ctx.rotate(angle);
+	            this.matrix = Transform.rotate(this.matrix, angle);
+	        }
+	    }, {
+	        key: "getCoordinate",
+	        value: function getCoordinate(coordinate) {
+	            return Transform.transform2D(this.matrix, coordinate);
+	        }
+	    }]);
+
+	    return Ctx;
+	}();
+
+	var ctxWrapper = (function (ctx) {
+	    return _Object$assign(ctx, new Ctx(ctx));
+	});
+
+	/**
+	 * todo 全局触发事件
+	 * todo 剪切不在边框内
+	 */
 
 	var SC = function () {
 	    function SC(id, setting) {
@@ -2945,7 +3375,7 @@
 	        this.version = '1.0.0';
 	        this.objects = [];
 	        this.images = [];
-	        this.tweens = [];
+	        this.tweenList = [];
 	        this.element = null;
 	        this.canvas = null;
 	        this.width = 0;
@@ -2962,7 +3392,7 @@
 	        this.config(setting);
 
 	        this.element = document.getElementById(id);
-	        this.canvas = this.element.getContext('2d');
+	        this.canvas = ctxWrapper(this.element.getContext('2d'));
 	        this.element.width = this.width;
 	        this.element.height = this.height;
 	    }
@@ -3006,9 +3436,13 @@
 	    }, {
 	        key: "redraw",
 	        value: function redraw() {
+	            // bug
 	            this.clear();
 	            this.canvas.save();
-	            this.canvas.translate(this.transX, this.transY);
+	            this.canvas.translate(200, 200);
+	            this.canvas.scale(this.scale, this.scale);
+	            this.canvas.translate(-200, -200);
+	            this.canvas.translate(this.transX / this.scale, this.transY / this.scale);
 	            this._draw();
 	            this.canvas.restore();
 	        }
@@ -3025,13 +3459,7 @@
 	    }, {
 	        key: "_attachCanvasEvents",
 	        value: function _attachCanvasEvents() {
-	            var canvasManage = new CanvasManage(this);
-	            this.canvasManage = canvasManage;
-	        }
-	    }, {
-	        key: "getPoint",
-	        value: function getPoint() {
-	            return this.canvasManage.getPoint();
+	            this.canvasManage = new CanvasManage(this);
 	        }
 
 	        // object being dragged
@@ -3049,13 +3477,13 @@
 	    }, {
 	        key: "animate",
 	        value: function animate(tween) {
-	            this.tweens.push(tween);
+	            this.tweenList.push(tween);
 	            this.tick();
 	        }
 	    }, {
 	        key: "clearAnimate",
 	        value: function clearAnimate() {
-	            this.tweens.length = 0;
+	            this.tweenList.length = 0;
 	        }
 	    }, {
 	        key: "stop",
@@ -3071,13 +3499,13 @@
 	            var _this2 = this;
 
 	            var requestFunc = function requestFunc() {
-	                if (!_this2.tweens.length) {
+	                if (!_this2.tweenList.length) {
 	                    _this2.isAnimating = false;
 	                    return;
 	                }
-	                _this2.tweens.forEach(function (tween, i) {
+	                _this2.tweenList.forEach(function (tween, i) {
 	                    if (tween.finished) {
-	                        _this2.tweens.splice(i--, 1);
+	                        _this2.tweenList.splice(i--, 1);
 	                    } else if (tween.update) {
 	                        tween.update();
 	                    } else if (typeof tween === 'function') {
@@ -3087,7 +3515,7 @@
 	                _this2.redraw();
 	                _this2.requestId = requestAnimationFrame(requestFunc);
 	            };
-	            if (this.tweens.length) {
+	            if (this.tweenList.length) {
 	                if (!this.isAnimating) {
 	                    this.isAnimating = true;
 	                    requestFunc();

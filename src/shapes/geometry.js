@@ -2,7 +2,9 @@ import { EventBus } from "../utils/event";
 import {noop} from "../utils";
 import Tween from "../tween";
 
-class Base extends EventBus {
+class Geometry extends EventBus {
+
+    bound = undefined;
 
     constructor(settings) {
         super();
@@ -56,6 +58,18 @@ class Base extends EventBus {
         this.sc.animate(tween);
 
     }
+
+    move (x = 0, y = 0) {
+
+    }
+
+    scale(scale = 1) {
+
+    }
+
+    clone() {
+
+    }
 }
 
-export default Base
+export default Geometry

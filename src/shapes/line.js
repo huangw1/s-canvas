@@ -1,7 +1,9 @@
-import Base from "./base";
+import Geometry from "./geometry";
 import {getCtrlPoint} from "../utils";
+import {squareSegmentDistance} from "../utils/geometryutil";
+import {Bound} from "../utils/bound";
 
-class Line extends Base {
+class Line extends Geometry {
 
     static type = 'line';
 
@@ -70,12 +72,33 @@ class Line extends Base {
         canvas.restore();
     }
 
-    getBounds() {
-        return {};
+    getBound() {
+        const matrix = this.matrix;
+        if(this.bound === undefined) {
+            let point = matrix[0];
+            const bound = new Bound(point[0], point[1], point[0], point[1]);
+            for(let i = 1; i < matrix.length; i++) {
+                point = matrix[i];
+                bound.extend(point[0], point[1], point[0], point[1]);
+            }
+            this.bound = point;
+        }
+        return this.bound;
     }
 
-    isPointInner() {
-        return false;
+    isPointInner(x, y) {
+        const matrix = this.matrix;
+        let find = false;
+        for(let i = 0; i < matrix.length - 1; i++) {
+            let p = matrix[i];
+            let nextP = matrix[i + 1];
+            let distance = squareSegmentDistance(x, y, p[0], p[1], nextP[0], nextP[1]);
+            if(distance <= 1) {
+                find = true;
+                break;
+            }
+        }
+        return find
     }
 }
 

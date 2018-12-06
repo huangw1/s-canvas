@@ -22,7 +22,8 @@
             name: 'minion',
             src : './img/minion.png'
         }],
-        enableScale: true
+        enableScale: true,
+        enableGlobalTranslate: true
     });
 
     const rect = stage.rectangular({
@@ -51,7 +52,7 @@
         });
     };
 
-    rotate(rect, 360);
+    // rotate(rect, 360);
 
     const image = stage.image({
         startX           : 150,

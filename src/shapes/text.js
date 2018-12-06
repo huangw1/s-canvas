@@ -1,7 +1,9 @@
-import Base from "./base";
+import Geometry from "./geometry";
 import {textEllipsis} from "../utils";
+import {pointFromSquare, squareContainsPoint} from "../utils/geometryutil";
+import {Bound} from "../utils/bound";
 
-class Text extends Base {
+class Text extends Geometry {
 
     static type = 'text';
 
@@ -28,6 +30,7 @@ class Text extends Base {
             text,
             backgroundColor,
             font,
+            textBaseline = 'top',
             strokeStyle,
             fillStyle,
             paddingLeft = 0,
@@ -47,7 +50,7 @@ class Text extends Base {
             canvas.restore();
         }
         canvas.font = font;
-        canvas.textBaseline = 'top';
+        canvas.textBaseline = textBaseline;
         const textWidth = canvas.measureText(text).width;
         const ellipsisText = textEllipsis(canvas, text, width - paddingLeft * 2);
         if(strokeStyle) {
@@ -69,19 +72,21 @@ class Text extends Base {
         canvas.restore();
     }
 
-    getBounds() {
+    getBound() {
         const {startX, startY, width, height, moveX, moveY} = this;
-        return {
-            startX: startX + moveX,
-            startY: startY + moveY,
-            width,
-            height
+        const point = pointFromSquare(startX + moveX, startY + moveY, width, height);
+        if(this.bound === undefined) {
+            this.bound = new Bound(...point);
+            return this.bound
         }
+        this.bound.reset(...point);
+        return this.bound
+
     }
 
     isPointInner(x, y) {
-        const {startX, startY, width, height} = this.getBounds();
-        return x > startX && x < (startX + width) && y > startY && y < (startY + height);
+        const bound = this.getBound();
+        return squareContainsPoint(bound, x, y)
     }
 }
 

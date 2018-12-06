@@ -1,6 +1,8 @@
-import Base from "./base";
+import Geometry from "./geometry";
+import {pointFromSquare, squareContainsPoint} from "../utils/geometryutil";
+import {Bound} from "../utils/bound";
 
-class Rectangular extends Base {
+class Rectangular extends Geometry {
 
     static type = 'rectangular';
 
@@ -43,19 +45,21 @@ class Rectangular extends Base {
         canvas.restore();
     }
 
-    getBounds() {
+    getBound() {
         const {startX, startY, width, height, moveX, moveY} = this;
-        return {
-            startX: startX + moveX,
-            startY: startY + moveY,
-            width,
-            height
+        const point = pointFromSquare(startX + moveX, startY + moveY, width, height);
+        if(this.bound === undefined) {
+            this.bound = new Bound(...point);
+            return this.bound
         }
+        this.bound.reset(...point);
+        return this.bound
+
     }
 
     isPointInner(x, y) {
-        const {startX, startY, width, height} = this.getBounds();
-        return x > startX && x < (startX + width) && y > startY && y < (startY + height);
+        const bound = this.getBound();
+        return squareContainsPoint(bound, x, y)
     }
 }
 
