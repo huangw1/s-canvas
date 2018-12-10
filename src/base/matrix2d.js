@@ -11,8 +11,8 @@ const Matrix2D = {
         return [a, b, c, d, e, f];
     },
 
-    initializeWithDefault() {
-        return this.initialize(1, 0, 0, 1, 0, 0)
+    new() {
+        return [1, 0, 0, 1, 0, 0];
     },
 
     set(transform, a, b, c, d, e, f) {
@@ -26,7 +26,11 @@ const Matrix2D = {
     },
 
     reset(transform) {
-        return Transform.set(transform, 1, 0, 0, 1, 0, 0)
+        return Matrix2D.set(transform, 1, 0, 0, 1, 0, 0)
+    },
+
+    copy(transform) {
+        return [...transform];
     },
 
     setFromTransform(transform1, transform2) {
@@ -45,7 +49,7 @@ const Matrix2D = {
      * @param coordinate
      * @returns {*[]}
      */
-    transform2D(transform, coordinate) {
+    transform2Point(transform, coordinate) {
         const x = transform[0] * coordinate[0] + transform[2] * coordinate[1] + transform[4];
         const y = transform[1] * coordinate[0] + transform[3] * coordinate[1] + transform[5];
         return [x, y]
@@ -82,18 +86,18 @@ const Matrix2D = {
     },
 
     rotate(transform, angle) {
-        const cos = Math.cos(angle);
-        const sin = Math.sin(angle);
+        const cos = Math.cos(angle * DEG_TO_RAD);
+        const sin = Math.sin(angle * DEG_TO_RAD);
 
-        return Transform.multiply(transform, Transform.initialize(cos, sin, -sin, cos, 0, 0))
+        return Matrix2D.multiply(transform, Matrix2D.initialize(cos, sin, -sin, cos, 0, 0))
     },
 
     scale(transform, x, y) {
-        return Transform.multiply(transform, Transform.initialize(x, 0, 0, y, 0, 0))
+        return Matrix2D.multiply(transform, Matrix2D.initialize(x, 0, 0, y, 0, 0))
     },
 
     translate: function (transform, dx, dy) {
-        return Transform.multiply(transform, Transform.initialize(1, 0, 0, 1, dx, dy))
+        return Matrix2D.multiply(transform, Matrix2D.initialize(1, 0, 0, 1, dx, dy))
     },
 
     /**
@@ -113,10 +117,10 @@ const Matrix2D = {
         if (skewX || skewY) {
             skewX *= DEG_TO_RAD;
             skewY *= DEG_TO_RAD;
-            Transform.multiply(transform, Transform.initialize(Math.cos(skewY), Math.sin(skewY), -Math.sin(skewX), Math.cos(skewX), x, y));
-            Transform.multiply(transform, Transform.initialize(cos * scaleX, sin * scaleX, -sin * scaleY, cos * scaleY, 0, 0));
+            Matrix2D.multiply(transform, Matrix2D.initialize(Math.cos(skewY), Math.sin(skewY), -Math.sin(skewX), Math.cos(skewX), x, y));
+            Matrix2D.multiply(transform, Matrix2D.initialize(cos * scaleX, sin * scaleX, -sin * scaleY, cos * scaleY, 0, 0));
         } else {
-            Transform.multiply(transform, Transform.initialize(cos * scaleX, sin * scaleX, -sin * scaleY, cos * scaleY, x, y));
+            Matrix2D.multiply(transform, Matrix2D.initialize(cos * scaleX, sin * scaleX, -sin * scaleY, cos * scaleY, x, y));
         }
         if (originX || originY) {
             transform[4] -= originX * transform[0] + originY * transform[2];
@@ -126,7 +130,7 @@ const Matrix2D = {
     },
 
     invert: function (transform) {
-        const det = Transform.determinant(transform);
+        const det = Matrix2D.determinant(transform);
 
         const a = transform[0];
         const b = transform[1];

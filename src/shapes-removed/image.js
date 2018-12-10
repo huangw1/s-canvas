@@ -1,6 +1,6 @@
 import Geometry from "./geometry";
 import {pointFromSquare, squareContainsPoint} from "../utils/geometryutil";
-import {Bound} from "../utils/bound";
+import {Bound} from "../base/bound";
 
 class Image extends Geometry {
 

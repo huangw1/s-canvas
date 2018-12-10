@@ -7,14 +7,14 @@ class Ctx {
 
     constructor(ctx) {
         this.ctx = ctx;
-        this.matrix = Matrix2D.initializeWithDefault();
+        this.matrix = Matrix2D.new();
         this.matrixStack = [];
     }
 
     save() {
         this.ctx.save();
         this.matrixStack.push(this.matrix);
-        this.matrix = Matrix2D.multiply(Matrix2D.initializeWithDefault(), this.matrix);
+        this.matrix = Matrix2D.multiply(Matrix2D.new(), this.matrix);
     }
 
     restore() {

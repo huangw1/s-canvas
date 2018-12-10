@@ -1,7 +1,7 @@
 import Geometry from "./geometry";
 import {textEllipsis} from "../utils";
 import {pointFromSquare, squareContainsPoint} from "../utils/geometryutil";
-import {Bound} from "../utils/bound";
+import {Bound} from "../base/bound";
 
 class Text extends Geometry {
 

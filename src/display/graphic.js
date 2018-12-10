@@ -37,26 +37,32 @@ const originalMethods = [
  * Graphic is a class that exposes an easy way to use canvas api.
  */
 class Graphic extends DisplayObject {
-    constructor(props) {
-        super(props);
+    constructor() {
+        super();
 
         this.cmds = [];
-        this.currentGradient = undefined;
+        this.currentGradient = null;
 
-        const proxy = new Proxy(this, {
-            get: (target, name) => {
-                if (originalMethods.find(method => method === name)) {
-                    return (...params) => {
-                        target.cmds.push([name, params]);
-                        return proxy;
-                    }
-                } else {
-                    return target[name];
-                }
-
+        // not considering the child.
+        // const proxy = new Proxy(this, {
+        //     get: (target, name) => {
+        //         if (originalMethods.find(method => method === name)) {
+        //             return (...params) => {
+        //                 target.cmds.push([name, params]);
+        //                 return proxy;
+        //             }
+        //         } else {
+        //             return target[name];
+        //         }
+        //
+        //     }
+        // });
+        // return proxy;
+        originalMethods.forEach(method => {
+            this[method] = (...params) => {
+                this.cmds.push([method, params]);
             }
-        });
-        return proxy;
+        })
     }
 
     clear() {
@@ -75,11 +81,7 @@ class Graphic extends DisplayObject {
         return this;
     }
 
-    clone() {
-        console.log('not yet implement.');
-    }
-
-    render(ctx) {
+    draw(ctx) {
         this.cmds.forEach(cmd => {
             const [methodName, params] = cmd;
             if (methodName === 'addColorStop') {
@@ -96,8 +98,12 @@ class Graphic extends DisplayObject {
                     this.currentGradient = result;
                 }
             }
-
         })
+        console.log(this.cmds);
+    }
+
+    clone() {
+        console.log('not yet implement.');
     }
 }
 

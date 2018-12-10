@@ -6,7 +6,7 @@ import commonjs from 'rollup-plugin-commonjs';
 export default {
     input: './src/index.js',
     output: {
-        name: 'SC',
+        name: 'sc',
         file: 'dist/canvas.js',
         format: "iife",
     },

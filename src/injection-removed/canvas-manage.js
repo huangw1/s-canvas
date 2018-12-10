@@ -1,4 +1,4 @@
-import {addListener, getPointer, removeListener} from "../utils/dom";
+import {addListener, getPointer, removeListener} from "../base/dom";
 
 class CanvasManage {
 

@@ -132,3 +132,5 @@ class QuadTree {
         return result;
     }
 }
+
+export default QuadTree

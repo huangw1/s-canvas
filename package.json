@@ -1,11 +1,11 @@
 {
-  "name": "s-canvas",
+  "name": "sc",
   "version": "1.0.0",
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "test:before": "karma start",
-    "test:after": "karma run"
+    "karma": "karma start",
+    "test": "karma run"
   },
   "dependencies": {},
   "devDependencies": {

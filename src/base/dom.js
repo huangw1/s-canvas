@@ -43,7 +43,7 @@ export const getElementOffset = (element) => {
         top,
         left,
     };
-}
+};
 
 export const getPointer = (event, inner = true) => {
     const element = event.target;

@@ -1,7 +1,7 @@
 import Geometry from "./geometry";
 import {getCtrlPoint} from "../utils";
 import {squareSegmentDistance} from "../utils/geometryutil";
-import {Bound} from "../utils/bound";
+import {Bound} from "../base/bound";
 
 class Line extends Geometry {
 
