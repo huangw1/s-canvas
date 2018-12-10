@@ -1928,38 +1928,45 @@
 	 * 外围边框
 	 */
 	var Bound = function () {
-	    function Bound(x1, y1) {
+	    function Bound() {
 	        _classCallCheck(this, Bound);
 
-	        this.x1 = x1 || 0;
-	        this.y1 = y1 || 0;
-	        this.x2 = x1 || 0;
-	        this.y2 = y1 || 0;
+	        this.x1 = undefined;
+	        this.y1 = undefined;
+	        this.x2 = undefined;
+	        this.y2 = undefined;
 	    }
 
 	    _createClass(Bound, [{
 	        key: "extend",
 	        value: function extend(x1, y1) {
-	            if (this.x1 > x1) {
+	            if (this.x1 === undefined) {
 	                this.x1 = x1;
-	            }
-	            if (this.y1 > y1) {
 	                this.y1 = y1;
-	            }
-	            if (this.x2 < x1) {
 	                this.x2 = x1;
-	            }
-	            if (this.y2 < y1) {
 	                this.y2 = y1;
+	            } else {
+	                if (this.x1 > x1) {
+	                    this.x1 = x1;
+	                }
+	                if (this.y1 > y1) {
+	                    this.y1 = y1;
+	                }
+	                if (this.x2 < x1) {
+	                    this.x2 = x1;
+	                }
+	                if (this.y2 < y1) {
+	                    this.y2 = y1;
+	                }
 	            }
 	        }
 	    }, {
 	        key: "reset",
-	        value: function reset(x1, y1) {
-	            this.x1 = x1 || 0;
-	            this.y1 = y1 || 0;
-	            this.x2 = x1 || 0;
-	            this.y2 = y1 || 0;
+	        value: function reset() {
+	            this.x1 = undefined;
+	            this.y1 = undefined;
+	            this.x2 = undefined;
+	            this.y2 = undefined;
 	        }
 	    }, {
 	        key: "getBounds",
@@ -2723,6 +2730,7 @@
 	            quadTree.clear();
 	            this._insertObjects(quadTree, stage.children);
 	            var children = this._getObjectsInQuad(quadTree, target);
+	            console.log('children: ', children, quadTree);
 	            for (var i = children.length - 1; i >= 0; i--) {
 	                var child = children[i];
 	                child.render(ctx, event);
@@ -2811,7 +2819,8 @@
 	        key: "_handleMouseDown",
 	        value: function _handleMouseDown(event) {
 	            this._computeStageXY(event);
-	            this._getObjectUnderPoint(event);
+	            var target = this._getObjectUnderPoint(event);
+	            console.log('target: ', target);
 	        }
 	    }, {
 	        key: "_handleMouseMove",
@@ -3026,7 +3035,6 @@
 	                    }
 	                }
 	            });
-	            console.log(this.cmds);
 	        }
 	    }, {
 	        key: 'clone',
@@ -3049,12 +3057,15 @@
 	        _this.width = width;
 	        _this.height = height;
 	        _this.option = option || {};
+
+	        _this.setBounds(0, 0, width, height);
 	        return _this;
 	    }
 
 	    _createClass(Rect, [{
 	        key: "draw",
 	        value: function draw(ctx) {
+	            this.clear();
 	            if (this.option.fillStyle) {
 	                this.fillStyle(this.option.fillStyle);
 	                this.fillRect(0, 0, this.width, this.height);

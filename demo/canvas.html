@@ -15,13 +15,19 @@
 <script src="../dist/canvas.js"></script>
 <script>
     const stage = new sc.Stage('container', 400, 400);
-    const rect = new sc.Rect(200, 100, {fillStyle: '#42B035', strokeStyle: '#42B035', lineWidth: 4});
+
+    const rect = new sc.Rect(200, 100, {
+        fillStyle  : '#42B035',
+        strokeStyle: '#42B035',
+        lineWidth  : 4
+    });
     rect.x = 200;
     rect.y = 200;
     rect.rotation = 45;
     rect.originX = 100;
     rect.originY = 50;
     stage.addChild(rect);
+
     stage.update();
 </script>
 </html>

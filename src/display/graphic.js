@@ -99,7 +99,6 @@ class Graphic extends DisplayObject {
                 }
             }
         })
-        console.log(this.cmds);
     }
 
     clone() {

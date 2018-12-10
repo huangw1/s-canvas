@@ -7,9 +7,12 @@ class Rect extends Graphic {
         this.width = width;
         this.height = height;
         this.option = option || {};
+
+        this.setBounds(0, 0, width, height);
     }
 
     draw(ctx) {
+        this.clear();
         if (this.option.fillStyle) {
             this.fillStyle(this.option.fillStyle);
             this.fillRect(0, 0, this.width, this.height);

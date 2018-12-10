@@ -3,14 +3,21 @@
  */
 class Bound {
 
-    constructor(x1, y1) {
-        this.x1 = x1 || 0;
-        this.y1 = y1 || 0;
-        this.x2 = x1 || 0;
-        this.y2 = y1 || 0;
+    constructor() {
+        this.x1 = undefined;
+        this.y1 = undefined;
+        this.x2 = undefined;
+        this.y2 = undefined;
     }
 
     extend(x1, y1) {
+        if(this.x1 === undefined) {
+            this.x1 = x1;
+            this.y1 = y1;
+            this.x2 = x1;
+            this.y2 = y1;
+            return;
+        }
         if (this.x1 > x1) {
             this.x1 = x1;
         }
@@ -25,11 +32,11 @@ class Bound {
         }
     }
 
-    reset(x1, y1) {
-        this.x1 = x1 || 0;
-        this.y1 = y1 || 0;
-        this.x2 = x1 || 0;
-        this.y2 = y1 || 0;
+    reset() {
+        this.x1 = undefined;
+        this.y1 = undefined;
+        this.x2 = undefined;
+        this.y2 = undefined;
     }
 
     get centerX() {

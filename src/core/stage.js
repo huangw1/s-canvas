@@ -29,7 +29,7 @@ class Stage extends Group {
 
     _handleMouseDown(event) {
         this._computeStageXY(event);
-        this._getObjectUnderPoint(event);
+        const target = this._getObjectUnderPoint(event);
     }
 
     _handleMouseMove(event) {
