@@ -15,6 +15,8 @@ export const MOUSE_UP = 'mouseup';
 
 export const MOUSE_OVER = 'mouseover';
 
+export const DRAG = 'drag';
+
 export const MOUSE_OUT = 'mouseout';
 
 export const WHEEL = 'wheel';

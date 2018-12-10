@@ -1945,19 +1945,19 @@
 	                this.y1 = y1;
 	                this.x2 = x1;
 	                this.y2 = y1;
-	            } else {
-	                if (this.x1 > x1) {
-	                    this.x1 = x1;
-	                }
-	                if (this.y1 > y1) {
-	                    this.y1 = y1;
-	                }
-	                if (this.x2 < x1) {
-	                    this.x2 = x1;
-	                }
-	                if (this.y2 < y1) {
-	                    this.y2 = y1;
-	                }
+	                return;
+	            }
+	            if (this.x1 > x1) {
+	                this.x1 = x1;
+	            }
+	            if (this.y1 > y1) {
+	                this.y1 = y1;
+	            }
+	            if (this.x2 < x1) {
+	                this.x2 = x1;
+	            }
+	            if (this.y2 < y1) {
+	                this.y2 = y1;
 	            }
 	        }
 	    }, {
@@ -2531,11 +2531,19 @@
 	 * browser event
 	 */
 
+	var CLICK = 'click';
+
 	var MOUSE_DOWN = 'mousedown';
 
 	var MOUSE_MOVE = 'mousemove';
 
 	var MOUSE_UP = 'mouseup';
+
+	var MOUSE_OVER = 'mouseover';
+
+	var DRAG = 'drag';
+
+	var MOUSE_OUT = 'mouseout';
 
 	/**
 	 * QuadTree - 四叉树 - 优化碰撞检测
@@ -2693,13 +2701,15 @@
 	    return QuadTree;
 	}();
 
+	var DEFAULT_SIZE = 2;
+
 	var Hit = function () {
 	    function Hit(stage) {
 	        _classCallCheck(this, Hit);
 
 	        var canvas = document.createElement('CANVAS');
-	        canvas.width = 2;
-	        canvas.height = 2;
+	        canvas.width = DEFAULT_SIZE;
+	        canvas.height = DEFAULT_SIZE;
 	        canvas.style.display = 'none';
 	        document.body.appendChild(canvas);
 	        this.ctx = canvas.getContext('2d');
@@ -2722,15 +2732,14 @@
 	            var target = {
 	                x: event.stageX,
 	                y: event.stageY,
-	                width: 2,
-	                height: 2
+	                width: DEFAULT_SIZE,
+	                height: DEFAULT_SIZE
 	            };
 
-	            ctx.clearRect(0, 0, 2, 2);
+	            ctx.clearRect(0, 0, DEFAULT_SIZE, DEFAULT_SIZE);
 	            quadTree.clear();
 	            this._insertObjects(quadTree, stage.children);
 	            var children = this._getObjectsInQuad(quadTree, target);
-	            console.log('children: ', children, quadTree);
 	            for (var i = children.length - 1; i >= 0; i--) {
 	                var child = children[i];
 	                child.render(ctx, event);
@@ -2777,6 +2786,35 @@
 	}();
 
 	/**
+	 * wrapper event
+	 */
+	var BrowserEvent = function () {
+	    function BrowserEvent() {
+	        _classCallCheck(this, BrowserEvent);
+
+	        this.propagationStopped = false;
+	        this.stageX = null;
+	        this.stageY = null;
+	        this.pureEvent = null;
+	    }
+
+	    _createClass(BrowserEvent, [{
+	        key: "preventDefault",
+	        value: function preventDefault() {
+	            this.pureEvent.preventDefault();
+	        }
+	    }, {
+	        key: "stopPropagation",
+	        value: function stopPropagation() {
+	            this.propagationStopped = true;
+	        }
+	    }]);
+
+	    return BrowserEvent;
+	}();
+
+	/**
+	 * todo 事件触发 - 事件监听
 	 * Stage is a class
 	 */
 
@@ -2796,6 +2834,16 @@
 	        _this.width = width;
 	        _this.height = height;
 	        _this.hit = new Hit(_this);
+
+	        _this._mouseDownX = null;
+	        _this._mouseDownY = null;
+	        _this._mouseUpX = null;
+	        _this._mouseUpY = null;
+	        _this._prevStageX = null;
+	        _this._prevStageY = null;
+	        _this._dragObject = null;
+	        _this._overObject = null;
+
 	        _this.createEventHandler();
 	        return _this;
 	    }
@@ -2820,14 +2868,87 @@
 	        value: function _handleMouseDown(event) {
 	            this._computeStageXY(event);
 	            var target = this._getObjectUnderPoint(event);
-	            console.log('target: ', target);
+	            if (target) {
+	                this._dragObject = target;
+	            }
+	            this._mouseDownX = event.stageX;
+	            this._mouseDownY = event.stageY;
+	            this._prevStageX = event.stageX;
+	            this._prevStageY = event.stageY;
 	        }
 	    }, {
 	        key: "_handleMouseMove",
-	        value: function _handleMouseMove(event) {}
+	        value: function _handleMouseMove(event) {
+	            this._computeStageXY(event);
+	            var target = this._getObjectUnderPoint(event);
+	            var browserEvent = new BrowserEvent();
+	            browserEvent.stageX = event.stageX;
+	            browserEvent.stageY = event.stageY;
+	            browserEvent.pureEvent = event;
+
+	            // 拖拽
+	            if (this._dragObject) {
+	                browserEvent.type = DRAG;
+	                browserEvent.dx = event.stageX - this._prevStageX;
+	                browserEvent.dy = event.stageY - this._prevStageY;
+	                this._prevStageX = event.stageX;
+	                this._prevStageY = event.stageY;
+	                this._dragObject.dispatchEvent(browserEvent);
+	            }
+	            // cursor 由外部指定
+	            if (target) {
+	                if (this._overObject === null) {
+	                    // 移入新的 _overObject
+	                    browserEvent.type = MOUSE_OVER;
+	                    this._overObject = target;
+	                    this._overObject.dispatchEvent(browserEvent);
+	                    this._setCursor(this._overObject);
+	                } else {
+	                    if (target.id !== this._overObject.id) {
+	                        // 移出旧的 _overObject
+	                        browserEvent.type = MOUSE_OUT;
+	                        this._overObject.dispatchEvent(browserEvent);
+	                        // 移入新的 _overObject
+	                        browserEvent.type = MOUSE_OVER;
+	                        this._overObject = target;
+	                        this._overObject.dispatchEvent(browserEvent);
+	                        this._setCursor(this._overObject);
+	                    } else {
+	                        // 经过原先的 _overObject
+	                        browserEvent.type = MOUSE_MOVE;
+	                        this._overObject.dispatchEvent(browserEvent);
+	                    }
+	                }
+	            } else if (this._overObject) {
+	                // 移出原先的 _overObject
+	                browserEvent.type = MOUSE_OUT;
+	                this._overObject.dispatchEvent(browserEvent);
+	                this._overObject = null;
+	                this._setCursor({ cursor: 'default' });
+	            }
+	        }
 	    }, {
 	        key: "_handleMouseUp",
-	        value: function _handleMouseUp(event) {}
+	        value: function _handleMouseUp(event) {
+	            this._computeStageXY(event);
+	            var target = this._getObjectUnderPoint(event);
+	            this._mouseUpX = event.stageX;
+	            this._mouseUpY = event.stageY;
+
+	            var browserEvent = new BrowserEvent();
+	            browserEvent.stageX = event.stageX;
+	            browserEvent.stageY = event.stageY;
+	            browserEvent.pureEvent = event;
+
+	            if (target && Math.abs(this._mouseDownX - this._mouseUpX) < 30 && Math.abs(this._mouseDownY - this._mouseUpY) < 30) {
+	                browserEvent.type = CLICK;
+	                target.dispatchEvent(browserEvent);
+	            }
+
+	            this._dragObject = null;
+	            this._prevStageX = null;
+	            this._prevStageY = null;
+	        }
 	    }, {
 	        key: "_getObjectUnderPoint",
 	        value: function _getObjectUnderPoint(event) {
@@ -2839,6 +2960,15 @@
 	            var point = getPointer(event);
 	            event.stageX = point.x;
 	            event.stageY = point.y;
+	        }
+	    }, {
+	        key: "_setCursor",
+	        value: function _setCursor(target) {
+	            if (target.cursor) {
+	                this.canvas.style.cursor = target.cursor;
+	            } else if (target.parent) {
+	                this._setCursor(target.parent);
+	            }
 	        }
 	    }, {
 	        key: "update",

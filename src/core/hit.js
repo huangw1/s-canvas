@@ -1,11 +1,13 @@
 import QuadTree from "../base/quadtree";
 import Group from "../display/group";
 
+const DEFAULT_SIZE = 2;
+
 class Hit {
     constructor(stage) {
         const canvas = document.createElement('CANVAS');
-        canvas.width = 2;
-        canvas.height = 2;
+        canvas.width = DEFAULT_SIZE;
+        canvas.height = DEFAULT_SIZE;
         canvas.style.display = 'none';
         document.body.appendChild(canvas);
         this.ctx = canvas.getContext('2d');
@@ -23,11 +25,11 @@ class Hit {
         const target = {
             x     : event.stageX,
             y     : event.stageY,
-            width : 2,
-            height: 2
+            width : DEFAULT_SIZE,
+            height: DEFAULT_SIZE
         };
 
-        ctx.clearRect(0, 0, 2, 2);
+        ctx.clearRect(0, 0, DEFAULT_SIZE, DEFAULT_SIZE);
         quadTree.clear();
         this._insertObjects(quadTree, stage.children);
         const children = this._getObjectsInQuad(quadTree, target);

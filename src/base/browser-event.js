@@ -1,11 +1,11 @@
 /**
  * wrapper event
  */
-class Event {
+class BrowserEvent {
     constructor() {
         this.propagationStopped = false;
         this.stageX = null;
-        this.stageX = null;
+        this.stageY = null;
         this.pureEvent = null;
     }
 
@@ -18,4 +18,4 @@ class Event {
     }
 }
 
-export default Event
+export default BrowserEvent

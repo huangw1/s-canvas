@@ -26,7 +26,14 @@
     rect.rotation = 45;
     rect.originX = 100;
     rect.originY = 50;
+    rect.cursor = 'pointer';
     stage.addChild(rect);
+
+    rect.on('click', (event) => {
+        rect.rotation += 10;
+        stage.update();
+        event.preventDefault();
+    });
 
     stage.update();
 </script>
