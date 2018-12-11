@@ -37,6 +37,7 @@ class Stage extends Group {
         addListener(this.canvas, MOUSE_DOWN, (event) => this._handleMouseDown(event));
         addListener(this.canvas, MOUSE_MOVE, (event) => this._handleMouseMove(event));
         addListener(this.canvas, MOUSE_UP, (event) => this._handleMouseUp(event));
+        addListener(this.canvas, MOUSE_OUT, (event) => this._handleMouseUp(event));
     }
 
     _handleMouseDown(event) {
@@ -137,7 +138,7 @@ class Stage extends Group {
         if(target.cursor) {
             this.canvas.style.cursor = target.cursor;
         } else if(target.parent) {
-            this._setCursor(target.parent)
+            this._setCursor(target.parent);
         }
 
     }

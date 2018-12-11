@@ -1552,7 +1552,7 @@
 	                instance = instance.parent;
 	            }
 	            for (var i = 0; i < list.length && !event.propagationStopped; i++) {
-	                this._dispatchEvent(event);
+	                list[i]._dispatchEvent(event);
 	            }
 	        }
 	    }, {
@@ -1837,8 +1837,6 @@
 		bounceInOut: bounceInOut
 	});
 
-	var noop$1 = function noop() {};
-
 	var Tween = function () {
 	    function Tween(props) {
 	        _classCallCheck(this, Tween);
@@ -1852,11 +1850,11 @@
 	            _props$easing = props.easing,
 	            easing = _props$easing === undefined ? 'linear' : _props$easing,
 	            _props$onStart = props.onStart,
-	            onStart = _props$onStart === undefined ? noop$1 : _props$onStart,
+	            onStart = _props$onStart === undefined ? noop : _props$onStart,
 	            _props$onUpdate = props.onUpdate,
-	            onUpdate = _props$onUpdate === undefined ? noop$1 : _props$onUpdate,
+	            onUpdate = _props$onUpdate === undefined ? noop : _props$onUpdate,
 	            _props$onFinish = props.onFinish,
-	            onFinish = _props$onFinish === undefined ? noop$1 : _props$onFinish;
+	            onFinish = _props$onFinish === undefined ? noop : _props$onFinish;
 
 
 	        for (var key in from) {
@@ -2079,7 +2077,6 @@
 	        _this.shadow = null;
 
 	        _this.matrix = Matrix2D.new();
-	        _this.hitMatrix = Matrix2D.new();
 	        return _this;
 	    }
 
@@ -2185,6 +2182,11 @@
 	                this.bound = new Bound();
 	            }
 	            this.bound.setBounds(x, y, width, height);
+	        }
+	    }, {
+	        key: "getBounds",
+	        value: function getBounds() {
+	            return this.bound && this.bound.getBounds();
 	        }
 
 	        /**
@@ -2862,6 +2864,9 @@
 	            addListener(this.canvas, MOUSE_UP, function (event) {
 	                return _this2._handleMouseUp(event);
 	            });
+	            addListener(this.canvas, MOUSE_OUT, function (event) {
+	                return _this2._handleMouseUp(event);
+	            });
 	        }
 	    }, {
 	        key: "_handleMouseDown",
@@ -2941,6 +2946,7 @@
 	            browserEvent.pureEvent = event;
 
 	            if (target && Math.abs(this._mouseDownX - this._mouseUpX) < 30 && Math.abs(this._mouseDownY - this._mouseUpY) < 30) {
+	                // 触发点击
 	                browserEvent.type = CLICK;
 	                target.dispatchEvent(browserEvent);
 	            }
@@ -3145,6 +3151,7 @@
 	        value: function draw(ctx) {
 	            var _this2 = this;
 
+	            ctx.beginPath();
 	            this.cmds.forEach(function (cmd) {
 	                var _cmd = _slicedToArray(cmd, 2),
 	                    methodName = _cmd[0],
@@ -3165,6 +3172,7 @@
 	                    }
 	                }
 	            });
+	            ctx.closePath();
 	        }
 	    }, {
 	        key: 'clone',
@@ -3188,39 +3196,188 @@
 	        _this.height = height;
 	        _this.option = option || {};
 
+	        _this.buildCmds();
 	        _this.setBounds(0, 0, width, height);
 	        return _this;
 	    }
 
 	    _createClass(Rect, [{
-	        key: "draw",
-	        value: function draw(ctx) {
-	            this.clear();
-	            if (this.option.fillStyle) {
-	                this.fillStyle(this.option.fillStyle);
+	        key: "buildCmds",
+	        value: function buildCmds() {
+	            var _option = this.option,
+	                fillStyle = _option.fillStyle,
+	                strokeStyle = _option.strokeStyle,
+	                lineWidth = _option.lineWidth;
+
+	            if (fillStyle) {
+	                this.fillStyle(fillStyle);
 	                this.fillRect(0, 0, this.width, this.height);
 	            }
 
-	            if (this.option.strokeStyle) {
-	                this.strokeStyle(this.option.strokeStyle);
-	                if (this.option.lineWidth) {
-	                    this.lineWidth(this.option.lineWidth);
+	            if (strokeStyle) {
+	                this.strokeStyle(strokeStyle);
+	                if (lineWidth) {
+	                    this.lineWidth(lineWidth);
 	                }
 	                this.strokeRect(0, 0, this.width, this.height);
 	            }
-	            _get(Rect.prototype.__proto__ || _Object$getPrototypeOf(Rect.prototype), "draw", this).call(this, ctx);
 	        }
 	    }]);
 
 	    return Rect;
 	}(Graphic);
 
-	// import ImageManage from "./injection-removed/image-manage";
+	var Circle = function (_Graphic) {
+	    _inherits(Circle, _Graphic);
+
+	    function Circle(radius, options) {
+	        _classCallCheck(this, Circle);
+
+	        var _this = _possibleConstructorReturn(this, (Circle.__proto__ || _Object$getPrototypeOf(Circle)).call(this));
+
+	        _this.radius = radius;
+	        _this.options = options || {};
+
+	        _this.buildCmds();
+	        _this.setBounds(-_this.radius, -_this.radius, _this.radius * 2, _this.radius * 2);
+	        return _this;
+	    }
+
+	    _createClass(Circle, [{
+	        key: "buildCmds",
+	        value: function buildCmds() {
+	            var _options = this.options,
+	                fillStyle = _options.fillStyle,
+	                strokeStyle = _options.strokeStyle,
+	                lineWidth = _options.lineWidth;
+
+	            this.arc(0, 0, this.radius, 0, Math.PI * 2, false);
+	            if (fillStyle) {
+	                this.fillStyle(fillStyle);
+	                this.fill();
+	            }
+	            if (strokeStyle) {
+	                if (lineWidth) {
+	                    this.lineWidth(lineWidth);
+	                }
+	                this.strokeStyle(strokeStyle);
+	                this.stroke();
+	            }
+	        }
+	    }]);
+
+	    return Circle;
+	}(Graphic);
+
+	var Bitmap = function (_DisplayObject) {
+	    _inherits(Bitmap, _DisplayObject);
+
+	    function Bitmap(src, done) {
+	        _classCallCheck(this, Bitmap);
+
+	        var _this = _possibleConstructorReturn(this, (Bitmap.__proto__ || _Object$getPrototypeOf(Bitmap)).call(this));
+
+	        if (typeof src === 'string') {
+	            if (Bitmap.cache[src]) {
+	                _this.image = Bitmap.cache[src];
+	                _this.setBounds(0, 0, _this.image.width, _this.image.height);
+	                done && done(_this);
+	            } else {
+	                var image = new Image();
+	                image.onload = function () {
+	                    _this.image = image;
+	                    if (!_this.getBounds()) {
+	                        _this.setBounds(0, 0, _this.image.width, _this.image.height);
+	                    }
+	                    Bitmap.cache[src] = _this.image;
+	                    done && done(_this);
+	                };
+	                image.src = src;
+	            }
+	        } else {
+	            _this.image = src;
+	            _this.setBounds(0, 0, _this.image.width, _this.image.height);
+	            Bitmap.cache[_this.image.src] = _this.image;
+	            done && done(_this);
+	        }
+	        return _this;
+	    }
+
+	    _createClass(Bitmap, [{
+	        key: "draw",
+	        value: function draw(ctx) {
+	            if (this.image) {
+	                var _getBounds = this.getBounds(),
+	                    x = _getBounds.x,
+	                    y = _getBounds.y,
+	                    width = _getBounds.width,
+	                    height = _getBounds.height;
+
+	                ctx.drawImage(this.image, x, y, width, height, 0, 0, width, height);
+	            }
+	        }
+	    }]);
+
+	    return Bitmap;
+	}(DisplayObject);
+
+	Bitmap.cache = {};
+
+	/**
+	 * Ticker for animation.
+	 */
+
+	var ticking = false;
+	var queue = [];
+
+	var untick = function untick(uid) {
+	    var index = queue.findIndex(function (item) {
+	        return item.uid === uid;
+	    });
+	    queue.splice(index, 1);
+	    if (!queue.length) {
+	        ticking = false;
+	    }
+	};
+
+	var tick = function tick(callback, interval) {
+	    var uid = UID.get();
+	    queue.push({
+	        uid: uid,
+	        callback: callback,
+	        interval: interval,
+	        lastTime: new Date().getTime()
+	    });
+
+	    if (!ticking) {
+	        var requestFunc = function requestFunc() {
+	            queue.forEach(function (item) {
+	                if (!item.interval) {
+	                    item.callback();
+	                } else if (new Date().getTime() - item.lastTime >= item.interval) {
+	                    item.callback();
+	                    item.lastTime = new Date().getTime();
+	                }
+	            });
+	            if (ticking) {
+	                requestAnimationFrame(requestFunc);
+	            }
+	        };
+	        ticking = true;
+	        requestFunc();
+	    }
+	    return function () {
+	        untick(uid);
+	    };
+	};
 
 	window.sc = {};
 	sc.Stage = Stage;
 	sc.Group = Group;
 	sc.Graphic = Graphic;
 	sc.Rect = Rect;
+	sc.Circle = Circle;
+	sc.Bitmap = Bitmap;
+	sc.tick = tick;
 
 }());

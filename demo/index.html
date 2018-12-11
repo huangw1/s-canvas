@@ -14,105 +14,43 @@
 </body>
 <script src="../dist/canvas.js"></script>
 <script>
+    const stage = new sc.Stage('container', 400, 400);
 
-    const stage = new SC('container', {
-        width : 400,
-        height: 400,
-        images: [{
-            name: 'minion',
-            src : './img/minion.png'
-        }],
-        enableScale: true,
-        enableGlobalTranslate: true
+    const rect = new sc.Rect(200, 100, {
+        fillStyle  : '#42B035',
+        strokeStyle: '#42B035',
+        lineWidth  : 4
     });
-
-    const rect = stage.rectangular({
-        startX           : 150,
-        startY           : 150,
-        width            : 100,
-        height           : 100,
-        fillStyle        : '#ccc',
-        enableDrag       : true,
-        enableChangeIndex: true
-    }).on('mouseenter', () => {
-        console.log('rect mouseenter');
-    }).on('mouseleave', () => {
-        console.log('rect mouseleave');
+    rect.x = 200;
+    rect.y = 200;
+    rect.rotation = 45;
+    rect.originX = 100;
+    rect.originY = 50;
+    rect.cursor = 'pointer';
+    rect.on('drag', (event) => {
+        rect.x += event.dx;
+        rect.y += event.dy;
+        stage.update();
+        event.preventDefault();
     });
-
-    const rotate = (shape, step) => {
-        shape.animateTo({
-            rotate: shape.rotate + step
-        }, {
-            easing: 'quadIn',
-            duration: 2000,
-            onFinish: () => {
-                rotate(shape, -step);
-            }
-        });
-    };
-
-    // rotate(rect, 360);
-
-    const image = stage.image({
-        startX           : 150,
-        startY           : 150,
-        width            : 100,
-        height           : 160,
-        sliceX           : 250,
-        sliceY           : 150,
-        sliceWidth       : 500,
-        sliceHeight      : 800,
-        image            : 'minion',
-        enableDrag       : true,
-        enableChangeIndex: true
-    }).on('mouseenter', () => {
-        console.log('image mouseenter');
-    }).on('mouseleave', () => {
-        console.log('image mouseleave');
-    });
-
-    const line = stage.line({
-        strokeStyle: '#333',
-        smooth: true,
-        matrix: [
-            [0, 0],
-            [200, 200],
-            [0, 400]
-        ]
-    });
-
-    const line1 = stage.line({
-        strokeStyle: '#333',
-        smooth: true,
-        matrix: [
-            [400, 0],
-            [200, 200],
-            [400, 400]
-        ]
-    });
-
-    const text = stage.text({
-        text: '小黄人',
-        font: '18px serif',
-        startX: 150,
-        startY: 100,
-        width : 100,
-        height: 30,
-        backgroundColor: '#333',
-        fillStyle: '#ccc',
-        center: true,
-        enableDrag       : true,
-        enableChangeIndex: true
-    });
-
-    stage.addChild(line);
-    stage.addChild(line1);
     stage.addChild(rect);
+
+    const circle = new sc.Circle(50, {
+        fillStyle  : '#42B035',
+        strokeStyle: '#42B035',
+        lineWidth  : 4
+    });
+    circle.x = 100;
+    circle.y = 100;
+    stage.addChild(circle);
+
+    const image = new sc.Bitmap('./img/ai.png');
+    image.x = 100;
+    image.y = 200;
     stage.addChild(image);
-    stage.addChild(text);
 
-    stage.draw();
-
+    sc.tick(() => {
+        stage.update();
+    });
 </script>
 </html>

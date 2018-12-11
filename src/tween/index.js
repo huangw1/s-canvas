@@ -1,5 +1,5 @@
 import * as easing from './easing';
-import {noop} from "../utils";
+import {noop} from "../base/util";
 
 class Tween {
 

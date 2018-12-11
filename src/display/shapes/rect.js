@@ -8,24 +8,24 @@ class Rect extends Graphic {
         this.height = height;
         this.option = option || {};
 
+        this.buildCmds();
         this.setBounds(0, 0, width, height);
     }
 
-    draw(ctx) {
-        this.clear();
-        if (this.option.fillStyle) {
-            this.fillStyle(this.option.fillStyle);
+    buildCmds() {
+        const {fillStyle, strokeStyle, lineWidth } = this.option;
+        if (fillStyle) {
+            this.fillStyle(fillStyle);
             this.fillRect(0, 0, this.width, this.height);
         }
 
-        if (this.option.strokeStyle) {
-            this.strokeStyle(this.option.strokeStyle);
-            if (this.option.lineWidth) {
-                this.lineWidth(this.option.lineWidth);
+        if (strokeStyle) {
+            this.strokeStyle(strokeStyle);
+            if (lineWidth) {
+                this.lineWidth(lineWidth);
             }
             this.strokeRect(0, 0, this.width, this.height);
         }
-        super.draw(ctx);
     }
 }
 

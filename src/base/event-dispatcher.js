@@ -74,7 +74,7 @@ class EventDispatcher {
             instance = instance.parent;
         }
         for(let i = 0; i < list.length && !event.propagationStopped; i++) {
-            this._dispatchEvent(event);
+            list[i]._dispatchEvent(event);
         }
     }
 

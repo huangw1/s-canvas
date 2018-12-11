@@ -82,6 +82,7 @@ class Graphic extends DisplayObject {
     }
 
     draw(ctx) {
+        ctx.beginPath();
         this.cmds.forEach(cmd => {
             const [methodName, params] = cmd;
             if (methodName === 'addColorStop') {
@@ -99,6 +100,7 @@ class Graphic extends DisplayObject {
                 }
             }
         })
+        ctx.closePath();
     }
 
     clone() {

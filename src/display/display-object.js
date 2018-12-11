@@ -39,7 +39,6 @@ class DisplayObject extends EventDispatcher {
         this.shadow = null;
 
         this.matrix = Matrix2D.new();
-        this.hitMatrix = Matrix2D.new();
     }
 
     get isVisible() {
@@ -150,6 +149,10 @@ class DisplayObject extends EventDispatcher {
             this.bound = new Bound();
         }
         this.bound.setBounds(x, y, width, height);
+    }
+
+    getBounds() {
+        return this.bound && this.bound.getBounds();
     }
 
     /**
