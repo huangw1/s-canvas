@@ -8,6 +8,6 @@
     ]
   ],
   "plugins": [
-    "transform-runtime", "external-helpers", "transform-class-properties"
+    "transform-runtime", "external-helpers", "transform-class-properties", "transform-object-rest-spread"
   ]
 }

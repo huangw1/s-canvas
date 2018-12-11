@@ -1381,53 +1381,6 @@
 
 	var _get = unwrapExports(get);
 
-	// 19.1.2.1 Object.assign(target, source, ...)
-
-
-
-
-
-	var $assign = Object.assign;
-
-	// should work with symbols and should have deterministic property order (V8 bug)
-	var _objectAssign = !$assign || _fails(function () {
-	  var A = {};
-	  var B = {};
-	  // eslint-disable-next-line no-undef
-	  var S = Symbol();
-	  var K = 'abcdefghijklmnopqrst';
-	  A[S] = 7;
-	  K.split('').forEach(function (k) { B[k] = k; });
-	  return $assign({}, A)[S] != 7 || Object.keys($assign({}, B)).join('') != K;
-	}) ? function assign(target, source) { // eslint-disable-line no-unused-vars
-	  var T = _toObject(target);
-	  var aLen = arguments.length;
-	  var index = 1;
-	  var getSymbols = _objectGops.f;
-	  var isEnum = _objectPie.f;
-	  while (aLen > index) {
-	    var S = _iobject(arguments[index++]);
-	    var keys = getSymbols ? _objectKeys(S).concat(getSymbols(S)) : _objectKeys(S);
-	    var length = keys.length;
-	    var j = 0;
-	    var key;
-	    while (length > j) if (isEnum.call(S, key = keys[j++])) T[key] = S[key];
-	  } return T;
-	} : $assign;
-
-	// 19.1.3.1 Object.assign(target, source)
-
-
-	_export(_export.S + _export.F, 'Object', { assign: _objectAssign });
-
-	var assign = _core.Object.assign;
-
-	var assign$1 = createCommonjsModule(function (module) {
-	module.exports = { "default": assign, __esModule: true };
-	});
-
-	var _Object$assign = unwrapExports(assign$1);
-
 	var toConsumableArray = createCommonjsModule(function (module, exports) {
 
 	exports.__esModule = true;
@@ -1744,183 +1697,6 @@
 	        return mat[0] * mat[3] - mat[1] * mat[2];
 	    }
 	};
-
-	var noop = function noop() {};
-
-	/**!
-	 * code from https://github.com/LiikeJS/Liike/blob/master/src/ease.js
-	 */
-	var easeInBy = function easeInBy(power) {
-	    return function (t) {
-	        return Math.pow(t, power);
-	    };
-	};
-	var easeOutBy = function easeOutBy(power) {
-	    return function (t) {
-	        return 1 - Math.abs(Math.pow(t - 1, power));
-	    };
-	};
-	var easeInOutBy = function easeInOutBy(power) {
-	    return function (t) {
-	        return t < 0.5 ? easeInBy(power)(t * 2) / 2 : easeOutBy(power)(t * 2 - 1) / 2 + 0.5;
-	    };
-	};
-
-	var linear = function linear(t) {
-	    return t;
-	};
-	var quadIn = easeInBy(2);
-	var quadOut = easeOutBy(2);
-	var quadInOut = easeInOutBy(2);
-	var cubicIn = easeInBy(3);
-	var cubicOut = easeOutBy(3);
-	var cubicInOut = easeInOutBy(3);
-	var quartIn = easeInBy(4);
-	var quartOut = easeOutBy(4);
-	var quartInOut = easeInOutBy(4);
-	var quintIn = easeInBy(5);
-	var quintOut = easeOutBy(5);
-	var quintInOut = easeInOutBy(5);
-	var sineIn = function sineIn(t) {
-	    return 1 + Math.sin(Math.PI / 2 * t - Math.PI / 2);
-	};
-	var sineOut = function sineOut(t) {
-	    return Math.sin(Math.PI / 2 * t);
-	};
-	var sineInOut = function sineInOut(t) {
-	    return (1 + Math.sin(Math.PI * t - Math.PI / 2)) / 2;
-	};
-	var bounceOut = function bounceOut(t) {
-	    var s = 7.5625;
-	    var p = 2.75;
-
-	    if (t < 1 / p) {
-	        return s * t * t;
-	    }
-	    if (t < 2 / p) {
-	        t -= 1.5 / p;
-	        return s * t * t + 0.75;
-	    }
-	    if (t < 2.5 / p) {
-	        t -= 2.25 / p;
-	        return s * t * t + 0.9375;
-	    }
-	    t -= 2.625 / p;
-	    return s * t * t + 0.984375;
-	};
-	var bounceIn = function bounceIn(t) {
-	    return 1 - bounceOut(1 - t);
-	};
-	var bounceInOut = function bounceInOut(t) {
-	    return t < 0.5 ? bounceIn(t * 2) * 0.5 : bounceOut(t * 2 - 1) * 0.5 + 0.5;
-	};
-
-	var easing = /*#__PURE__*/Object.freeze({
-		linear: linear,
-		quadIn: quadIn,
-		quadOut: quadOut,
-		quadInOut: quadInOut,
-		cubicIn: cubicIn,
-		cubicOut: cubicOut,
-		cubicInOut: cubicInOut,
-		quartIn: quartIn,
-		quartOut: quartOut,
-		quartInOut: quartInOut,
-		quintIn: quintIn,
-		quintOut: quintOut,
-		quintInOut: quintInOut,
-		sineIn: sineIn,
-		sineOut: sineOut,
-		sineInOut: sineInOut,
-		bounceOut: bounceOut,
-		bounceIn: bounceIn,
-		bounceInOut: bounceInOut
-	});
-
-	var Tween = function () {
-	    function Tween(props) {
-	        _classCallCheck(this, Tween);
-
-	        var from = props.from,
-	            to = props.to,
-	            _props$duration = props.duration,
-	            duration = _props$duration === undefined ? 500 : _props$duration,
-	            _props$delay = props.delay,
-	            delay = _props$delay === undefined ? 0 : _props$delay,
-	            _props$easing = props.easing,
-	            easing = _props$easing === undefined ? 'linear' : _props$easing,
-	            _props$onStart = props.onStart,
-	            onStart = _props$onStart === undefined ? noop : _props$onStart,
-	            _props$onUpdate = props.onUpdate,
-	            onUpdate = _props$onUpdate === undefined ? noop : _props$onUpdate,
-	            _props$onFinish = props.onFinish,
-	            onFinish = _props$onFinish === undefined ? noop : _props$onFinish;
-
-
-	        for (var key in from) {
-	            if (to[key] === undefined) {
-	                to[key] = from[key];
-	            }
-	        }
-	        for (var _key in to) {
-	            if (from[_key] === undefined) {
-	                from[_key] = to[_key];
-	            }
-	        }
-
-	        _Object$assign(this, {
-	            from: from,
-	            to: to,
-	            duration: duration,
-	            delay: delay,
-	            easing: easing,
-	            onStart: onStart,
-	            onUpdate: onUpdate,
-	            onFinish: onFinish,
-	            startTime: Date.now() + delay,
-	            elapsed: 0,
-	            started: false,
-	            finished: false
-	        });
-	    }
-
-	    _createClass(Tween, [{
-	        key: 'update',
-	        value: function update() {
-	            var keys = {};
-	            var now = Date.now();
-	            if (now < this.startTime) {
-	                return;
-	            }
-
-	            if (this.elapsed >= this.duration) {
-	                if (!this.finished) {
-	                    this.finished = true;
-	                    this.onFinish(keys);
-	                }
-	                return;
-	            }
-
-	            this.elapsed = now - this.startTime;
-	            if (this.elapsed > this.duration) {
-	                this.elapsed = this.duration;
-	            }
-
-	            for (var key in this.to) {
-	                keys[key] = this.from[key] + (this.to[key] - this.from[key]) * easing[this.easing](this.elapsed / this.duration);
-	            }
-
-	            if (!this.started) {
-	                this.started = true;
-	                this.onStart(keys);
-	            }
-
-	            this.onUpdate(keys);
-	        }
-	    }]);
-
-	    return Tween;
-	}();
 
 	/**
 	 * 外围边框
@@ -2307,40 +2083,8 @@
 	            }
 	        }
 	    }, {
-	        key: "animateTo",
-	        value: function animateTo(keys) {
-	            var _this2 = this;
-
-	            var config = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-	            _Object$assign(config, {
-	                from: {},
-	                to: keys
-	            });
-	            for (var key in keys) {
-	                config.from[key] = this[key];
-	            }
-	            var onStart = config.onStart || noop;
-	            config.onStart = function () {
-	                onStart();
-	            };
-	            var onUpdate = config.onUpdate || noop;
-	            config.onUpdate = function (props) {
-	                _Object$assign(_this2, props);
-	                onUpdate(props);
-	            };
-	            var onFinish = config.onFinish || noop;
-	            config.onFinish = function () {
-	                onFinish();
-	            };
-
-	            var tween = new Tween(config);
-	        }
-	    }, {
 	        key: "clone",
-	        value: function clone() {
-	            console.log('not yet implement.');
-	        }
+	        value: function clone() {}
 	    }, {
 	        key: "destroy",
 	        value: function destroy() {
@@ -2466,9 +2210,7 @@
 	        }
 	    }, {
 	        key: "clone",
-	        value: function clone() {
-	            console.log('not yet implement.');
-	        }
+	        value: function clone() {}
 	    }]);
 
 	    return Group;
@@ -3099,21 +2841,6 @@
 	        _this.cmds = [];
 	        _this.currentGradient = null;
 
-	        // not considering the child.
-	        // const proxy = new Proxy(this, {
-	        //     get: (target, name) => {
-	        //         if (originalMethods.find(method => method === name)) {
-	        //             return (...params) => {
-	        //                 target.cmds.push([name, params]);
-	        //                 return proxy;
-	        //             }
-	        //         } else {
-	        //             return target[name];
-	        //         }
-	        //
-	        //     }
-	        // });
-	        // return proxy;
 	        originalMethods.forEach(function (method) {
 	            _this[method] = function () {
 	                for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
@@ -3176,9 +2903,7 @@
 	        }
 	    }, {
 	        key: 'clone',
-	        value: function clone() {
-	            console.log('not yet implement.');
-	        }
+	        value: function clone() {}
 	    }]);
 
 	    return Graphic;
@@ -3327,6 +3052,21 @@
 	 * Ticker for animation.
 	 */
 
+	var prefixes = 'webkit moz ms o'.split(' ');
+	var requestAnimationFrame = window.requestAnimationFrame;
+	var cancelAnimationFrame = window.cancelAnimationFrame;
+
+	prefixes.some(function (prefix) {
+	    if (requestAnimationFrame && cancelAnimationFrame) {
+	        return true;
+	    }
+	    requestAnimationFrame = requestAnimationFrame || window[prefix + 'RequestAnimationFrame'];
+	    cancelAnimationFrame = cancelAnimationFrame || window[prefix + 'CancelAnimationFrame'] || window[prefix + 'CancelRequestAnimationFrame'];
+	});
+
+	window.requestAnimationFrame = requestAnimationFrame;
+	window.cancelAnimationFrame = cancelAnimationFrame;
+
 	var ticking = false;
 	var queue = [];
 
@@ -3371,6 +3111,345 @@
 	    };
 	};
 
+	// 19.1.2.1 Object.assign(target, source, ...)
+
+
+
+
+
+	var $assign = Object.assign;
+
+	// should work with symbols and should have deterministic property order (V8 bug)
+	var _objectAssign = !$assign || _fails(function () {
+	  var A = {};
+	  var B = {};
+	  // eslint-disable-next-line no-undef
+	  var S = Symbol();
+	  var K = 'abcdefghijklmnopqrst';
+	  A[S] = 7;
+	  K.split('').forEach(function (k) { B[k] = k; });
+	  return $assign({}, A)[S] != 7 || Object.keys($assign({}, B)).join('') != K;
+	}) ? function assign(target, source) { // eslint-disable-line no-unused-vars
+	  var T = _toObject(target);
+	  var aLen = arguments.length;
+	  var index = 1;
+	  var getSymbols = _objectGops.f;
+	  var isEnum = _objectPie.f;
+	  while (aLen > index) {
+	    var S = _iobject(arguments[index++]);
+	    var keys = getSymbols ? _objectKeys(S).concat(getSymbols(S)) : _objectKeys(S);
+	    var length = keys.length;
+	    var j = 0;
+	    var key;
+	    while (length > j) if (isEnum.call(S, key = keys[j++])) T[key] = S[key];
+	  } return T;
+	} : $assign;
+
+	// 19.1.3.1 Object.assign(target, source)
+
+
+	_export(_export.S + _export.F, 'Object', { assign: _objectAssign });
+
+	var assign = _core.Object.assign;
+
+	var assign$1 = createCommonjsModule(function (module) {
+	module.exports = { "default": assign, __esModule: true };
+	});
+
+	unwrapExports(assign$1);
+
+	var _extends = createCommonjsModule(function (module, exports) {
+
+	exports.__esModule = true;
+
+
+
+	var _assign2 = _interopRequireDefault(assign$1);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = _assign2.default || function (target) {
+	  for (var i = 1; i < arguments.length; i++) {
+	    var source = arguments[i];
+
+	    for (var key in source) {
+	      if (Object.prototype.hasOwnProperty.call(source, key)) {
+	        target[key] = source[key];
+	      }
+	    }
+	  }
+
+	  return target;
+	};
+	});
+
+	var _extends$1 = unwrapExports(_extends);
+
+	/**!
+	 * code from https://github.com/LiikeJS/Liike/blob/master/src/ease.js
+	 */
+	var easeInBy = function easeInBy(power) {
+	    return function (t) {
+	        return Math.pow(t, power);
+	    };
+	};
+	var easeOutBy = function easeOutBy(power) {
+	    return function (t) {
+	        return 1 - Math.abs(Math.pow(t - 1, power));
+	    };
+	};
+	var easeInOutBy = function easeInOutBy(power) {
+	    return function (t) {
+	        return t < 0.5 ? easeInBy(power)(t * 2) / 2 : easeOutBy(power)(t * 2 - 1) / 2 + 0.5;
+	    };
+	};
+
+	var linear = function linear(t) {
+	    return t;
+	};
+	var quadIn = easeInBy(2);
+	var quadOut = easeOutBy(2);
+	var quadInOut = easeInOutBy(2);
+	var cubicIn = easeInBy(3);
+	var cubicOut = easeOutBy(3);
+	var cubicInOut = easeInOutBy(3);
+	var quartIn = easeInBy(4);
+	var quartOut = easeOutBy(4);
+	var quartInOut = easeInOutBy(4);
+	var quintIn = easeInBy(5);
+	var quintOut = easeOutBy(5);
+	var quintInOut = easeInOutBy(5);
+	var sineIn = function sineIn(t) {
+	    return 1 + Math.sin(Math.PI / 2 * t - Math.PI / 2);
+	};
+	var sineOut = function sineOut(t) {
+	    return Math.sin(Math.PI / 2 * t);
+	};
+	var sineInOut = function sineInOut(t) {
+	    return (1 + Math.sin(Math.PI * t - Math.PI / 2)) / 2;
+	};
+	var bounceOut = function bounceOut(t) {
+	    var s = 7.5625;
+	    var p = 2.75;
+
+	    if (t < 1 / p) {
+	        return s * t * t;
+	    }
+	    if (t < 2 / p) {
+	        t -= 1.5 / p;
+	        return s * t * t + 0.75;
+	    }
+	    if (t < 2.5 / p) {
+	        t -= 2.25 / p;
+	        return s * t * t + 0.9375;
+	    }
+	    t -= 2.625 / p;
+	    return s * t * t + 0.984375;
+	};
+	var bounceIn = function bounceIn(t) {
+	    return 1 - bounceOut(1 - t);
+	};
+	var bounceInOut = function bounceInOut(t) {
+	    return t < 0.5 ? bounceIn(t * 2) * 0.5 : bounceOut(t * 2 - 1) * 0.5 + 0.5;
+	};
+
+	var easing = /*#__PURE__*/Object.freeze({
+		linear: linear,
+		quadIn: quadIn,
+		quadOut: quadOut,
+		quadInOut: quadInOut,
+		cubicIn: cubicIn,
+		cubicOut: cubicOut,
+		cubicInOut: cubicInOut,
+		quartIn: quartIn,
+		quartOut: quartOut,
+		quartInOut: quartInOut,
+		quintIn: quintIn,
+		quintOut: quintOut,
+		quintInOut: quintInOut,
+		sineIn: sineIn,
+		sineOut: sineOut,
+		sineInOut: sineInOut,
+		bounceOut: bounceOut,
+		bounceIn: bounceIn,
+		bounceInOut: bounceInOut
+	});
+
+	var noop = function noop() {};
+
+	var Tween = function () {
+	    function Tween(props) {
+	        _classCallCheck(this, Tween);
+
+	        var from = props.from,
+	            to = props.to,
+	            _props$duration = props.duration,
+	            duration = _props$duration === undefined ? 500 : _props$duration,
+	            _props$delay = props.delay,
+	            delay = _props$delay === undefined ? 0 : _props$delay,
+	            _props$easing = props.easing,
+	            easing = _props$easing === undefined ? 'linear' : _props$easing,
+	            _props$start = props.start,
+	            start = _props$start === undefined ? noop : _props$start,
+	            _props$update = props.update,
+	            update = _props$update === undefined ? noop : _props$update,
+	            _props$finish = props.finish,
+	            finish = _props$finish === undefined ? noop : _props$finish;
+
+
+	        for (var key in from) {
+	            if (to[key] === undefined) {
+	                to[key] = from[key];
+	            }
+	        }
+	        for (var _key in to) {
+	            if (from[_key] === undefined) {
+	                from[_key] = to[_key];
+	            }
+	        }
+
+	        this.from = from;
+	        this.to = to;
+	        this.duration = duration;
+	        this.delay = delay;
+	        this.easing = easing;
+	        this.start = start;
+	        this.update = update;
+	        this.finish = finish;
+	        this.startTime = new Date().getTime() + delay;
+	        this.elapsed = 0;
+	        this.started = false;
+	        this.finished = false;
+	    }
+
+	    _createClass(Tween, [{
+	        key: 'compute',
+	        value: function compute() {
+	            var properties = {};
+	            var timeStamp = new Date().getTime();
+	            if (timeStamp < this.startTime) {
+	                return;
+	            }
+
+	            if (this.elapsed >= this.duration) {
+	                if (!this.finished) {
+	                    this.finished = true;
+	                    this.finish(properties);
+	                }
+	                return;
+	            }
+
+	            this.elapsed = timeStamp - this.startTime;
+	            if (this.elapsed > this.duration) {
+	                this.elapsed = this.duration;
+	            }
+
+	            for (var key in this.to) {
+	                properties[key] = this.from[key] + (this.to[key] - this.from[key]) * easing[this.easing](this.elapsed / this.duration);
+	            }
+
+	            if (!this.started) {
+	                this.started = true;
+	                this.start(properties);
+	            }
+
+	            this.update(properties);
+	        }
+	    }]);
+
+	    return Tween;
+	}();
+
+	var queue$1 = [];
+
+	var add = function add(target) {
+	    return new To(target);
+	};
+
+	var update = function update() {
+	    if (queue$1.length) {
+	        queue$1.forEach(function (tween) {
+	            tween.compute();
+	        });
+	    }
+	};
+
+	var animatingProperties = ['x', 'y', 'scale', 'scaleX', 'scaleY', 'rotation', 'skewX', 'skewY', 'originX', 'originY', 'alpha'];
+
+	var optionProperties = ['easing', 'duration', 'delay', 'start', 'finish'];
+
+	var To = function () {
+	    function To(target) {
+	        var _this = this;
+
+	        _classCallCheck(this, To);
+
+	        this.target = target;
+	        this.from = {};
+	        this.to = {};
+	        this.options = {};
+
+	        animatingProperties.forEach(function (animatingProperty) {
+	            _this[animatingProperty] = function (value) {
+	                _this.from[animatingProperty] = _this.target[animatingProperty];
+	                _this.to[animatingProperty] = value;
+	                return _this;
+	            };
+	        });
+	        optionProperties.forEach(function (optionProperty) {
+	            _this[optionProperty] = function (value) {
+	                _this.options[optionProperty] = value;
+	                return _this;
+	            };
+	        });
+	    }
+
+	    _createClass(To, [{
+	        key: 'to',
+	        value: function to(properties) {
+	            for (var key in properties) {
+	                this[key](properties[key]);
+	            }
+	        }
+	    }, {
+	        key: 'update',
+	        value: function update(callback) {
+	            var _this2 = this;
+
+	            this.options.update = function (properties) {
+	                for (var key in properties) {
+	                    _this2.target[key] = properties[key];
+	                }
+	                callback(properties);
+	            };
+	            return this;
+	        }
+	    }, {
+	        key: 'create',
+	        value: function create() {
+	            var _this3 = this;
+
+	            queue$1.push(new Tween(_extends$1({
+	                update: function update(properties) {
+	                    for (var key in properties) {
+	                        _this3.target[key] = properties[key];
+	                    }
+	                }
+	            }, this.options, {
+	                from: this.from,
+	                to: this.to
+	            })));
+	        }
+	    }]);
+
+	    return To;
+	}();
+
+	var anim = /*#__PURE__*/Object.freeze({
+		add: add,
+		update: update
+	});
+
 	window.sc = {};
 	sc.Stage = Stage;
 	sc.Group = Group;
@@ -3379,5 +3458,6 @@
 	sc.Circle = Circle;
 	sc.Bitmap = Bitmap;
 	sc.tick = tick;
+	sc.anim = anim;
 
 }());

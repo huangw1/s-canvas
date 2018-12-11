@@ -1,8 +1,6 @@
 import EventDispatcher from "../base/event-dispatcher";
 import UID from "../base/uid";
 import Matrix2D from "../base/matrix2d";
-import {noop} from "../base/util";
-import Tween from "../tween";
 import Bound from "../base/bound";
 
 /**
@@ -244,34 +242,7 @@ class DisplayObject extends EventDispatcher {
         }
     }
 
-    animateTo(keys, config = {}) {
-        Object.assign(config, {
-            from: {},
-            to  : keys
-        });
-        for(let key in keys) {
-            config.from[key] = this[key];
-        }
-        const onStart = config.onStart || noop;
-        config.onStart = () => {
-            onStart();
-        };
-        const onUpdate = config.onUpdate || noop;
-        config.onUpdate = (props) => {
-            Object.assign(this, props);
-            onUpdate(props);
-        };
-        const onFinish = config.onFinish || noop;
-        config.onFinish = () => {
-            onFinish();
-        };
-
-        const tween = new Tween(config);
-
-    }
-
     clone() {
-        console.log('not yet implement.');
     }
 
     destroy() {

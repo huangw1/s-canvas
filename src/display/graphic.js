@@ -43,21 +43,6 @@ class Graphic extends DisplayObject {
         this.cmds = [];
         this.currentGradient = null;
 
-        // not considering the child.
-        // const proxy = new Proxy(this, {
-        //     get: (target, name) => {
-        //         if (originalMethods.find(method => method === name)) {
-        //             return (...params) => {
-        //                 target.cmds.push([name, params]);
-        //                 return proxy;
-        //             }
-        //         } else {
-        //             return target[name];
-        //         }
-        //
-        //     }
-        // });
-        // return proxy;
         originalMethods.forEach(method => {
             this[method] = (...params) => {
                 this.cmds.push([method, params]);
@@ -86,25 +71,24 @@ class Graphic extends DisplayObject {
         this.cmds.forEach(cmd => {
             const [methodName, params] = cmd;
             if (methodName === 'addColorStop') {
-                if(this.currentGradient) {
+                if (this.currentGradient) {
                     this.currentGradient.addColorStop(params[0], params[1]);
                 }
-            } else if(methodName === 'fillGradient') {
+            } else if (methodName === 'fillGradient') {
                 ctx.fillStyle = this.currentGradient;
-            } else if(typeof ctx[methodName] !== 'function') {
+            } else if (typeof ctx[methodName] !== 'function') {
                 ctx[methodName] = params[0];
             } else {
                 const result = ctx[methodName].apply(ctx, params);
-                if(methodName === 'createRadialGradient') {
+                if (methodName === 'createRadialGradient') {
                     this.currentGradient = result;
                 }
             }
-        })
+        });
         ctx.closePath();
     }
 
     clone() {
-        console.log('not yet implement.');
     }
 }
 

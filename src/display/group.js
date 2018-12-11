@@ -67,7 +67,6 @@ class Group extends DisplayObject {
     }
 
     clone() {
-        console.log('not yet implement.');
     }
 
 }

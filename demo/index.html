@@ -33,24 +33,19 @@
         stage.update();
         event.preventDefault();
     });
+    sc.anim.add(rect).easing('quadIn').delay(1000).rotation(360).duration(2000).finish(() => {
+        console.log('rotation finish.');
+    }).create();
     stage.addChild(rect);
 
-    const circle = new sc.Circle(50, {
-        fillStyle  : '#42B035',
-        strokeStyle: '#42B035',
-        lineWidth  : 4
-    });
-    circle.x = 100;
-    circle.y = 100;
-    stage.addChild(circle);
-
     const image = new sc.Bitmap('./img/ai.png');
-    image.x = 100;
-    image.y = 200;
+    image.x = 200 - 36 / 2;
+    image.y = 200 - 36 / 2;
     stage.addChild(image);
 
     sc.tick(() => {
         stage.update();
+        sc.anim.update();
     });
 </script>
 </html>
