@@ -23,24 +23,24 @@
     });
     rect.x = 200;
     rect.y = 200;
-    rect.rotation = 45;
     rect.originX = 100;
     rect.originY = 50;
     rect.cursor = 'pointer';
     rect.on('drag', (event) => {
         rect.x += event.dx;
         rect.y += event.dy;
-        stage.update();
         event.preventDefault();
     });
-    sc.anim.add(rect).easing('quadIn').delay(1000).rotation(360).duration(2000).finish(() => {
-        console.log('rotation finish.');
-    }).create();
     stage.addChild(rect);
 
     const image = new sc.Bitmap('./img/ai.png');
     image.x = 200 - 36 / 2;
     image.y = 200 - 36 / 2;
+    image.on('drag', (event) => {
+        image.x += event.dx;
+        image.y += event.dy;
+        event.preventDefault();
+    });
     stage.addChild(image);
 
     const text = new sc.Text('文本描述', {
@@ -50,11 +50,15 @@
     text.x = 200;
     text.y = 100;
     text.cursor = 'pointer';
+    text.on('drag', (event) => {
+        text.x += event.dx;
+        text.y += event.dy;
+        event.preventDefault();
+    });
     stage.addChild(text);
 
     sc.tick(() => {
         stage.update();
-        sc.anim.update();
     });
 </script>
 </html>
