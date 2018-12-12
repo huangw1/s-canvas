@@ -43,6 +43,15 @@
     image.y = 200 - 36 / 2;
     stage.addChild(image);
 
+    const text = new sc.Text('文本描述', {
+        textAlign: 'center',
+        font: '16px sans-serif'
+    });
+    text.x = 200;
+    text.y = 100;
+    text.cursor = 'pointer';
+    stage.addChild(text);
+
     sc.tick(() => {
         stage.update();
         sc.anim.update();

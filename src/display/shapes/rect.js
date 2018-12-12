@@ -8,11 +8,11 @@ class Rect extends Graphic {
         this.height = height;
         this.option = option || {};
 
-        this.buildCmds();
+        this._buildCmd();
         this.setBounds(0, 0, width, height);
     }
 
-    buildCmds() {
+    _buildCmd() {
         const {fillStyle, strokeStyle, lineWidth } = this.option;
         if (fillStyle) {
             this.fillStyle(fillStyle);

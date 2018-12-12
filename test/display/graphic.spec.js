@@ -1,7 +1,7 @@
 import Graphic from "../../src/display/graphic";
 
 describe("Graphic", () => {
-    it("should proxy method.", () => {
+    it("Graphic proxy method.", () => {
         // your test
 
         const graphic = new Graphic();

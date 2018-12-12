@@ -12,6 +12,11 @@ const originalMethods = [
     'lineJoin',
     'miterLimit',
 
+    'font',
+    'textAlign',
+    'textBaseline',
+    'fillText',
+
     'clearRect',
     'rect',
     'setLineDash',

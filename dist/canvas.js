@@ -2824,7 +2824,7 @@
 	/**
 	 * canvas original methods
 	 */
-	var originalMethods = ['fillStyle', 'strokeStyle', 'lineWidth', 'lineCap', 'lineDashOffset', 'lineJoin', 'miterLimit', 'clearRect', 'rect', 'setLineDash', 'strokeRect', 'fillRect', 'beginPath', 'arc', 'closePath', 'fill', 'stroke', 'moveTo', 'lineTo', 'bezierCurveTo', 'quadraticCurveTo', 'createRadialGradient', 'createLinearGradient', 'addColorStop', 'fillGradient', 'arcTo'];
+	var originalMethods = ['fillStyle', 'strokeStyle', 'lineWidth', 'lineCap', 'lineDashOffset', 'lineJoin', 'miterLimit', 'font', 'textAlign', 'textBaseline', 'fillText', 'clearRect', 'rect', 'setLineDash', 'strokeRect', 'fillRect', 'beginPath', 'arc', 'closePath', 'fill', 'stroke', 'moveTo', 'lineTo', 'bezierCurveTo', 'quadraticCurveTo', 'createRadialGradient', 'createLinearGradient', 'addColorStop', 'fillGradient', 'arcTo'];
 
 	/**
 	 * Graphic is a class that exposes an easy way to use canvas api.
@@ -2921,14 +2921,14 @@
 	        _this.height = height;
 	        _this.option = option || {};
 
-	        _this.buildCmds();
+	        _this._buildCmd();
 	        _this.setBounds(0, 0, width, height);
 	        return _this;
 	    }
 
 	    _createClass(Rect, [{
-	        key: "buildCmds",
-	        value: function buildCmds() {
+	        key: "_buildCmd",
+	        value: function _buildCmd() {
 	            var _option = this.option,
 	                fillStyle = _option.fillStyle,
 	                strokeStyle = _option.strokeStyle,
@@ -2963,14 +2963,14 @@
 	        _this.radius = radius;
 	        _this.options = options || {};
 
-	        _this.buildCmds();
+	        _this._buildCmd();
 	        _this.setBounds(-_this.radius, -_this.radius, _this.radius * 2, _this.radius * 2);
 	        return _this;
 	    }
 
 	    _createClass(Circle, [{
-	        key: "buildCmds",
-	        value: function buildCmds() {
+	        key: "_buildCmd",
+	        value: function _buildCmd() {
 	            var _options = this.options,
 	                fillStyle = _options.fillStyle,
 	                strokeStyle = _options.strokeStyle,
@@ -3048,69 +3048,6 @@
 
 	Bitmap.cache = {};
 
-	/**
-	 * Ticker for animation.
-	 */
-
-	var prefixes = 'webkit moz ms o'.split(' ');
-	var requestAnimationFrame = window.requestAnimationFrame;
-	var cancelAnimationFrame = window.cancelAnimationFrame;
-
-	prefixes.some(function (prefix) {
-	    if (requestAnimationFrame && cancelAnimationFrame) {
-	        return true;
-	    }
-	    requestAnimationFrame = requestAnimationFrame || window[prefix + 'RequestAnimationFrame'];
-	    cancelAnimationFrame = cancelAnimationFrame || window[prefix + 'CancelAnimationFrame'] || window[prefix + 'CancelRequestAnimationFrame'];
-	});
-
-	window.requestAnimationFrame = requestAnimationFrame;
-	window.cancelAnimationFrame = cancelAnimationFrame;
-
-	var ticking = false;
-	var queue = [];
-
-	var untick = function untick(uid) {
-	    var index = queue.findIndex(function (item) {
-	        return item.uid === uid;
-	    });
-	    queue.splice(index, 1);
-	    if (!queue.length) {
-	        ticking = false;
-	    }
-	};
-
-	var tick = function tick(callback, interval) {
-	    var uid = UID.get();
-	    queue.push({
-	        uid: uid,
-	        callback: callback,
-	        interval: interval,
-	        lastTime: new Date().getTime()
-	    });
-
-	    if (!ticking) {
-	        var requestFunc = function requestFunc() {
-	            queue.forEach(function (item) {
-	                if (!item.interval) {
-	                    item.callback();
-	                } else if (new Date().getTime() - item.lastTime >= item.interval) {
-	                    item.callback();
-	                    item.lastTime = new Date().getTime();
-	                }
-	            });
-	            if (ticking) {
-	                requestAnimationFrame(requestFunc);
-	            }
-	        };
-	        ticking = true;
-	        requestFunc();
-	    }
-	    return function () {
-	        untick(uid);
-	    };
-	};
-
 	// 19.1.2.1 Object.assign(target, source, ...)
 
 
@@ -3184,6 +3121,178 @@
 	});
 
 	var _extends$1 = unwrapExports(_extends);
+
+	var Text = function (_Graphic) {
+	    _inherits(Text, _Graphic);
+
+	    function Text(text, options) {
+	        _classCallCheck(this, Text);
+
+	        var _this = _possibleConstructorReturn(this, (Text.__proto__ || _Object$getPrototypeOf(Text)).call(this));
+
+	        _this.text = text;
+	        _this.options = options || {};
+	        _this.options = _extends$1({
+	            font: '12px sans-serif',
+	            color: 'black',
+	            textAlign: 'left',
+	            textBaseline: 'top',
+	            maxWidth: Number.MAX_VALUE
+	        }, _this.options);
+	        _this._ctx = document.createElement('CANVAS').getContext('2d');
+
+	        _this._buildCmd();
+	        return _this;
+	    }
+
+	    _createClass(Text, [{
+	        key: '_buildCmd',
+	        value: function _buildCmd() {
+	            var _options = this.options,
+	                font = _options.font,
+	                color = _options.color,
+	                textAlign = _options.textAlign,
+	                textBaseline = _options.textBaseline,
+	                maxWidth = _options.maxWidth;
+
+	            var _getEllipsisTextInfo2 = this._getEllipsisTextInfo(this.text, maxWidth),
+	                text = _getEllipsisTextInfo2.text,
+	                textWidth = _getEllipsisTextInfo2.textWidth;
+
+	            this.font(font);
+	            this.textAlign(textAlign);
+	            this.textBaseline(textBaseline);
+	            this.fillStyle(color);
+	            this.fillText(text, 0, 0);
+
+	            this.setBounds.apply(this, _toConsumableArray(this._getBounds(text, textWidth)));
+	        }
+	    }, {
+	        key: '_getBounds',
+	        value: function _getBounds(text, textWidth) {
+	            var _options2 = this.options,
+	                textAlign = _options2.textAlign,
+	                textBaseline = _options2.textBaseline;
+
+	            var offsetX = { start: 0, left: 0, center: -0.5, end: -1, right: -1 };
+	            var offsetY = { top: 0, hanging: -0.01, middle: -0.4, alphabetic: -0.8, ideographic: -0.85, bottom: -1 };
+	            var width = textWidth;
+	            var height = this._getLineHeight();
+	            var x = offsetX[textAlign] * width;
+	            var y = offsetY[textBaseline] * height;
+	            console.log('x, y, width, height: ', x, y, width, height);
+	            return [x, y, width, height];
+	        }
+	    }, {
+	        key: '_prepContext',
+	        value: function _prepContext(ctx) {
+	            var _options3 = this.options,
+	                font = _options3.font,
+	                textAlign = _options3.textAlign,
+	                textBaseline = _options3.textBaseline;
+
+	            ctx.font = font;
+	            ctx.textAlign = textAlign;
+	            ctx.textBaseline = textBaseline;
+	        }
+	    }, {
+	        key: '_measureTextWidth',
+	        value: function _measureTextWidth(text) {
+	            var ctx = this.stage && this.stage.ctx || this._ctx;
+	            ctx.save();
+	            this._prepContext(ctx);
+	            var width = ctx.measureText(text).width;
+	            ctx.restore();
+	            return width;
+	        }
+	    }, {
+	        key: '_getLineHeight',
+	        value: function _getLineHeight() {
+	            return this._measureTextWidth('M') * 1.2;
+	        }
+	    }, {
+	        key: '_getEllipsisTextInfo',
+	        value: function _getEllipsisTextInfo(text, maxWidth) {
+	            var textWidth = this._measureTextWidth(text);
+	            var ellipsis = '...';
+	            var ellipsisWidth = this._measureTextWidth(ellipsis);
+	            if (textWidth <= maxWidth || textWidth <= ellipsisWidth) {
+	                return { text: text, textWidth: textWidth };
+	            }
+	            var length = text.length;
+	            while (textWidth >= maxWidth - ellipsisWidth && length-- > 0) {
+	                text = text.substring(0, length);
+	                textWidth = this._measureTextWidth(text);
+	            }
+	            return { text: text + ellipsis, textWidth: textWidth + ellipsisWidth };
+	        }
+	    }]);
+
+	    return Text;
+	}(Graphic);
+
+	/**
+	 * Ticker for animation.
+	 */
+
+	var prefixes = 'webkit moz ms o'.split(' ');
+	var requestAnimationFrame = window.requestAnimationFrame;
+	var cancelAnimationFrame = window.cancelAnimationFrame;
+
+	prefixes.some(function (prefix) {
+	    if (requestAnimationFrame && cancelAnimationFrame) {
+	        return true;
+	    }
+	    requestAnimationFrame = requestAnimationFrame || window[prefix + 'RequestAnimationFrame'];
+	    cancelAnimationFrame = cancelAnimationFrame || window[prefix + 'CancelAnimationFrame'] || window[prefix + 'CancelRequestAnimationFrame'];
+	});
+
+	window.requestAnimationFrame = requestAnimationFrame;
+	window.cancelAnimationFrame = cancelAnimationFrame;
+
+	var ticking = false;
+	var queue = [];
+
+	var untick = function untick(uid) {
+	    var index = queue.findIndex(function (item) {
+	        return item.uid === uid;
+	    });
+	    queue.splice(index, 1);
+	    if (!queue.length) {
+	        ticking = false;
+	    }
+	};
+
+	var tick = function tick(callback, interval) {
+	    var uid = UID.get();
+	    queue.push({
+	        uid: uid,
+	        callback: callback,
+	        interval: interval,
+	        lastTime: new Date().getTime()
+	    });
+
+	    if (!ticking) {
+	        var requestFunc = function requestFunc() {
+	            queue.forEach(function (item) {
+	                if (!item.interval) {
+	                    item.callback();
+	                } else if (new Date().getTime() - item.lastTime >= item.interval) {
+	                    item.callback();
+	                    item.lastTime = new Date().getTime();
+	                }
+	            });
+	            if (ticking) {
+	                requestAnimationFrame(requestFunc);
+	            }
+	        };
+	        ticking = true;
+	        requestFunc();
+	    }
+	    return function () {
+	        untick(uid);
+	    };
+	};
 
 	/**!
 	 * code from https://github.com/LiikeJS/Liike/blob/master/src/ease.js
@@ -3457,6 +3566,7 @@
 	sc.Rect = Rect;
 	sc.Circle = Circle;
 	sc.Bitmap = Bitmap;
+	sc.Text = Text;
 	sc.tick = tick;
 	sc.anim = anim;
 

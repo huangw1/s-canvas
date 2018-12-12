@@ -7,11 +7,11 @@ class Circle extends Graphic {
         this.radius = radius;
         this.options = options || {};
 
-        this.buildCmds();
+        this._buildCmd();
         this.setBounds(-this.radius, -this.radius, this.radius * 2, this.radius * 2);
     }
 
-    buildCmds() {
+    _buildCmd() {
         const {fillStyle, strokeStyle, lineWidth} = this.options;
         this.arc(0, 0, this.radius, 0,  Math.PI * 2, false);
         if (fillStyle) {
