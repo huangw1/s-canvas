@@ -6,8 +6,17 @@ export const add = (target) => {
     return new To(target);
 };
 
+export const removeFinished = () => {
+    queue.forEach((tween, i) => {
+        if(tween.hasFinished) {
+            queue.splice(i--, 1);
+        }
+    })
+};
+
 export const update = () => {
     if(queue.length) {
+        removeFinished();
         queue.forEach(tween => {
             tween.compute();
         });
@@ -32,16 +41,14 @@ const optionProperties = [
     'easing',
     'duration',
     'delay',
-    'start',
-    'finish'
+    'start'
 ]
 
 class To {
     constructor(target) {
         this.target = target;
-        this.from = {};
-        this.to = {};
-        this.options = {};
+        this.current = 0;
+        this.cmdConfigurations = [{from: {}, to: {}, options: {}}];
 
         animatingProperties.forEach(animatingProperty => {
             this[animatingProperty] = (value) => {
@@ -58,10 +65,16 @@ class To {
         });
     }
 
-    to(properties) {
-        for (let key in properties) {
-            this[key](properties[key]);
-        }
+    get from() {
+        return this.cmdConfigurations[this.current].from;
+    }
+
+    get to() {
+        return this.cmdConfigurations[this.current].to;
+    }
+
+    get options() {
+        return this.cmdConfigurations[this.current].options;
     }
 
     update(callback) {
@@ -74,16 +87,27 @@ class To {
         return this;
     }
 
+    finish(callback) {
+        this.options.finish = (properties) => {
+            callback(properties);
+        };
+        this.current += 1;
+        this.cmdConfigurations.push({from: {}, to: {}, options: {}});
+        return this;
+    }
+
     create() {
-        queue.push(new Tween({
-            update: (properties) => {
-                for(let key in properties) {
-                    this.target[key] = properties[key];
-                }
-            },
-            ...this.options,
-            from: this.from,
-            to: this.to
-        }));
+        queue.push(new Tween(this.cmdConfigurations.map(cmdConfiguration => {
+            return {
+                update: (properties) => {
+                    for(let key in properties) {
+                        this.target[key] = properties[key];
+                    }
+                },
+                ...cmdConfiguration.options,
+                from: cmdConfiguration.from,
+                to: cmdConfiguration.to
+            }
+        })));
     }
 }

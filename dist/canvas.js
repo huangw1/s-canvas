@@ -3093,7 +3093,7 @@
 	module.exports = { "default": assign, __esModule: true };
 	});
 
-	unwrapExports(assign$1);
+	var _Object$assign = unwrapExports(assign$1);
 
 	var _extends = createCommonjsModule(function (module, exports) {
 
@@ -3180,7 +3180,6 @@
 	            var height = this._getLineHeight();
 	            var x = offsetX[textAlign] * width;
 	            var y = offsetY[textBaseline] * height;
-	            console.log('x, y, width, height: ', x, y, width, height);
 	            return [x, y, width, height];
 	        }
 	    }, {
@@ -3387,82 +3386,120 @@
 	var noop = function noop() {};
 
 	var Tween = function () {
-	    function Tween(props) {
+	    function Tween(cmdConfigurations) {
 	        _classCallCheck(this, Tween);
 
-	        var from = props.from,
-	            to = props.to,
-	            _props$duration = props.duration,
-	            duration = _props$duration === undefined ? 500 : _props$duration,
-	            _props$delay = props.delay,
-	            delay = _props$delay === undefined ? 0 : _props$delay,
-	            _props$easing = props.easing,
-	            easing = _props$easing === undefined ? 'linear' : _props$easing,
-	            _props$start = props.start,
-	            start = _props$start === undefined ? noop : _props$start,
-	            _props$update = props.update,
-	            update = _props$update === undefined ? noop : _props$update,
-	            _props$finish = props.finish,
-	            finish = _props$finish === undefined ? noop : _props$finish;
-
-
-	        for (var key in from) {
-	            if (to[key] === undefined) {
-	                to[key] = from[key];
-	            }
-	        }
-	        for (var _key in to) {
-	            if (from[_key] === undefined) {
-	                from[_key] = to[_key];
-	            }
-	        }
-
-	        this.from = from;
-	        this.to = to;
-	        this.duration = duration;
-	        this.delay = delay;
-	        this.easing = easing;
-	        this.start = start;
-	        this.update = update;
-	        this.finish = finish;
-	        this.startTime = new Date().getTime() + delay;
-	        this.elapsed = 0;
-	        this.started = false;
-	        this.finished = false;
+	        this.current = 0;
+	        this.cmdConfigurations = cmdConfigurations;
+	        this.cmdConfiguration = this.getCmdConfiguration();
 	    }
 
 	    _createClass(Tween, [{
-	        key: 'compute',
-	        value: function compute() {
-	            var properties = {};
-	            var timeStamp = new Date().getTime();
-	            if (timeStamp < this.startTime) {
-	                return;
+	        key: 'getCmdConfiguration',
+	        value: function getCmdConfiguration() {
+	            var cmdConfigurations = this.cmdConfigurations;
+	            var cmdConfiguration = cmdConfigurations[this.current];
+	            var from = cmdConfiguration.from,
+	                to = cmdConfiguration.to,
+	                _cmdConfiguration$dur = cmdConfiguration.duration,
+	                duration = _cmdConfiguration$dur === undefined ? 500 : _cmdConfiguration$dur,
+	                _cmdConfiguration$del = cmdConfiguration.delay,
+	                delay = _cmdConfiguration$del === undefined ? 0 : _cmdConfiguration$del,
+	                _cmdConfiguration$eas = cmdConfiguration.easing,
+	                easing = _cmdConfiguration$eas === undefined ? 'linear' : _cmdConfiguration$eas,
+	                _cmdConfiguration$sta = cmdConfiguration.start,
+	                start = _cmdConfiguration$sta === undefined ? noop : _cmdConfiguration$sta,
+	                _cmdConfiguration$upd = cmdConfiguration.update,
+	                update = _cmdConfiguration$upd === undefined ? noop : _cmdConfiguration$upd,
+	                _cmdConfiguration$fin = cmdConfiguration.finish,
+	                finish = _cmdConfiguration$fin === undefined ? noop : _cmdConfiguration$fin;
+
+
+	            if (this.current) {
+	                var prevCmdConfiguration = cmdConfigurations[this.current - 1];
+	                // 使用上一段属性
+	                for (var key in from) {
+	                    from[key] = prevCmdConfiguration.properties[key] || from[key];
+	                }
 	            }
 
-	            if (this.elapsed >= this.duration) {
-	                if (!this.finished) {
-	                    this.finished = true;
-	                    this.finish(properties);
+	            for (var _key in from) {
+	                if (to[_key] === undefined) {
+	                    to[_key] = from[_key];
+	                }
+	            }
+	            for (var _key2 in to) {
+	                if (from[_key2] === undefined) {
+	                    from[_key2] = to[_key2];
+	                }
+	            }
+
+	            _Object$assign(cmdConfiguration, {
+	                from: from,
+	                to: to,
+	                duration: duration,
+	                delay: delay,
+	                easing: easing,
+	                start: start,
+	                update: update,
+	                finish: finish,
+	                startTime: new Date().getTime() + delay,
+	                elapsed: 0,
+	                started: false,
+	                finished: false,
+	                properties: {}
+	            });
+	            return cmdConfiguration;
+	        }
+	    }, {
+	        key: 'compute',
+	        value: function compute() {
+	            if (this.hasFinished) {
+	                return;
+	            }
+	            if (!this.cmdConfiguration) {
+	                this.cmdConfiguration = this.getCmdConfiguration();
+	            }
+	            var cmdConfiguration = this.cmdConfiguration;
+
+	            var timeStamp = new Date().getTime();
+	            if (timeStamp < cmdConfiguration.startTime) {
+	                return;
+	            }
+	            if (cmdConfiguration.elapsed >= cmdConfiguration.duration) {
+	                if (!cmdConfiguration.finished) {
+	                    cmdConfiguration.finished = true;
+	                    cmdConfiguration.finish(cmdConfiguration.properties);
+	                    // 执行下一段
+	                    this.current += 1;
+	                    this.cmdConfiguration = undefined;
 	                }
 	                return;
 	            }
 
-	            this.elapsed = timeStamp - this.startTime;
-	            if (this.elapsed > this.duration) {
-	                this.elapsed = this.duration;
+	            cmdConfiguration.elapsed = timeStamp - cmdConfiguration.startTime;
+	            if (cmdConfiguration.elapsed > cmdConfiguration.duration) {
+	                cmdConfiguration.elapsed = cmdConfiguration.duration;
 	            }
 
-	            for (var key in this.to) {
-	                properties[key] = this.from[key] + (this.to[key] - this.from[key]) * easing[this.easing](this.elapsed / this.duration);
+	            for (var key in cmdConfiguration.to) {
+	                var easingFunc = easing[cmdConfiguration.easing];
+	                var ratio = cmdConfiguration.elapsed / cmdConfiguration.duration;
+	                var diff = cmdConfiguration.to[key] - cmdConfiguration.from[key];
+	                cmdConfiguration.properties[key] = cmdConfiguration.from[key] + diff * easingFunc(ratio);
 	            }
 
-	            if (!this.started) {
-	                this.started = true;
-	                this.start(properties);
+	            if (!cmdConfiguration.started) {
+	                cmdConfiguration.started = true;
+	                cmdConfiguration.start(cmdConfiguration.properties);
 	            }
 
-	            this.update(properties);
+	            cmdConfiguration.update(cmdConfiguration.properties);
+	        }
+	    }, {
+	        key: 'hasFinished',
+	        get: function get() {
+	            return this.current > this.cmdConfigurations.length - 1;
 	        }
 	    }]);
 
@@ -3475,8 +3512,17 @@
 	    return new To(target);
 	};
 
+	var removeFinished = function removeFinished() {
+	    queue$1.forEach(function (tween, i) {
+	        if (tween.hasFinished) {
+	            queue$1.splice(i--, 1);
+	        }
+	    });
+	};
+
 	var update = function update() {
 	    if (queue$1.length) {
+	        removeFinished();
 	        queue$1.forEach(function (tween) {
 	            tween.compute();
 	        });
@@ -3485,7 +3531,7 @@
 
 	var animatingProperties = ['x', 'y', 'scale', 'scaleX', 'scaleY', 'rotation', 'skewX', 'skewY', 'originX', 'originY', 'alpha'];
 
-	var optionProperties = ['easing', 'duration', 'delay', 'start', 'finish'];
+	var optionProperties = ['easing', 'duration', 'delay', 'start'];
 
 	var To = function () {
 	    function To(target) {
@@ -3494,9 +3540,8 @@
 	        _classCallCheck(this, To);
 
 	        this.target = target;
-	        this.from = {};
-	        this.to = {};
-	        this.options = {};
+	        this.current = 0;
+	        this.cmdConfigurations = [{ from: {}, to: {}, options: {} }];
 
 	        animatingProperties.forEach(function (animatingProperty) {
 	            _this[animatingProperty] = function (value) {
@@ -3514,13 +3559,6 @@
 	    }
 
 	    _createClass(To, [{
-	        key: 'to',
-	        value: function to(properties) {
-	            for (var key in properties) {
-	                this[key](properties[key]);
-	            }
-	        }
-	    }, {
 	        key: 'update',
 	        value: function update(callback) {
 	            var _this2 = this;
@@ -3534,20 +3572,47 @@
 	            return this;
 	        }
 	    }, {
+	        key: 'finish',
+	        value: function finish(callback) {
+	            this.options.finish = function (properties) {
+	                callback(properties);
+	            };
+	            this.current += 1;
+	            this.cmdConfigurations.push({ from: {}, to: {}, options: {} });
+	            return this;
+	        }
+	    }, {
 	        key: 'create',
 	        value: function create() {
 	            var _this3 = this;
 
-	            queue$1.push(new Tween(_extends$1({
-	                update: function update(properties) {
-	                    for (var key in properties) {
-	                        _this3.target[key] = properties[key];
+	            queue$1.push(new Tween(this.cmdConfigurations.map(function (cmdConfiguration) {
+	                return _extends$1({
+	                    update: function update(properties) {
+	                        for (var key in properties) {
+	                            _this3.target[key] = properties[key];
+	                        }
 	                    }
-	                }
-	            }, this.options, {
-	                from: this.from,
-	                to: this.to
+	                }, cmdConfiguration.options, {
+	                    from: cmdConfiguration.from,
+	                    to: cmdConfiguration.to
+	                });
 	            })));
+	        }
+	    }, {
+	        key: 'from',
+	        get: function get() {
+	            return this.cmdConfigurations[this.current].from;
+	        }
+	    }, {
+	        key: 'to',
+	        get: function get() {
+	            return this.cmdConfigurations[this.current].to;
+	        }
+	    }, {
+	        key: 'options',
+	        get: function get() {
+	            return this.cmdConfigurations[this.current].options;
 	        }
 	    }]);
 
@@ -3556,6 +3621,7 @@
 
 	var anim = /*#__PURE__*/Object.freeze({
 		add: add,
+		removeFinished: removeFinished,
 		update: update
 	});
 

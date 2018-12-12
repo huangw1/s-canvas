@@ -26,9 +26,24 @@
     rect.originX = 100;
     rect.originY = 50;
     rect.cursor = 'pointer';
-    sc.anim.add(rect).easing('cubicIn').delay(500).scaleX(1.5).scaleY(0.5).duration(500).finish(() => {
-        sc.anim.add(rect).easing('cubicOut').scaleX(1).scaleY(1).duration(500).create();
-    }).create();
+    sc.anim.add(rect)
+        .easing('cubicIn')
+        .delay(500)
+        .scaleX(1.5)
+        .scaleY(0.5)
+        .duration(500)
+        .finish(() => {
+            console.log('执行完前半部分。');
+            console.log('分割线。');
+        })
+        .easing('cubicOut')
+        .scaleX(1)
+        .scaleY(1)
+        .duration(500)
+        .finish(() => {
+            console.log('执行完后半部分。');
+        })
+        .create();
     stage.addChild(rect);
 
     sc.tick(() => {

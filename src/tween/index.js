@@ -2,7 +2,19 @@ import * as easing from './easing';
 import {noop} from "../base/util";
 
 class Tween {
-    constructor(props) {
+    constructor(cmdConfigurations) {
+        this.current = 0;
+        this.cmdConfigurations = cmdConfigurations;
+        this.cmdConfiguration = this.getCmdConfiguration();
+    }
+
+    get hasFinished() {
+        return this.current > this.cmdConfigurations.length - 1;
+    }
+
+    getCmdConfiguration() {
+        const cmdConfigurations = this.cmdConfigurations;
+        const cmdConfiguration = cmdConfigurations[this.current];
         const {
             from,
             to,
@@ -12,7 +24,15 @@ class Tween {
             start = noop,
             update = noop,
             finish = noop
-        } = props;
+        } = cmdConfiguration;
+
+        if(this.current) {
+            const prevCmdConfiguration = cmdConfigurations[this.current - 1];
+            // 使用上一段属性
+            for (let key in from) {
+                from[key] = prevCmdConfiguration.properties[key] || from[key];
+            }
+        }
 
         for (let key in from) {
             if (to[key] === undefined) {
@@ -25,50 +45,66 @@ class Tween {
             }
         }
 
-        this.from = from;
-        this.to = to;
-        this.duration = duration;
-        this.delay = delay;
-        this.easing = easing;
-        this.start = start;
-        this.update = update;
-        this.finish = finish;
-        this.startTime = new Date().getTime() + delay;
-        this.elapsed = 0;
-        this.started = false;
-        this.finished = false;
+        Object.assign(cmdConfiguration, {
+            from,
+            to,
+            duration,
+            delay,
+            easing,
+            start,
+            update,
+            finish,
+            startTime : new Date().getTime() + delay,
+            elapsed   : 0,
+            started   : false,
+            finished  : false,
+            properties: {}
+        });
+        return cmdConfiguration;
     }
 
     compute() {
-        const properties = {};
-        const timeStamp = new Date().getTime();
-        if (timeStamp < this.startTime) {
+        if(this.hasFinished) {
             return;
         }
+        if(!this.cmdConfiguration) {
+            this.cmdConfiguration = this.getCmdConfiguration();
+        }
+        const cmdConfiguration = this.cmdConfiguration;
 
-        if (this.elapsed >= this.duration) {
-            if (!this.finished) {
-                this.finished = true;
-                this.finish(properties);
+        const timeStamp = new Date().getTime();
+        if (timeStamp < cmdConfiguration.startTime) {
+            return;
+        }
+        if (cmdConfiguration.elapsed >= cmdConfiguration.duration) {
+            if (!cmdConfiguration.finished) {
+                cmdConfiguration.finished = true;
+                cmdConfiguration.finish(cmdConfiguration.properties);
+                // 执行下一段
+                this.current += 1;
+                this.cmdConfiguration = undefined;
             }
             return;
         }
 
-        this.elapsed = timeStamp - this.startTime;
-        if(this.elapsed > this.duration) {
-            this.elapsed = this.duration;
+        cmdConfiguration.elapsed = timeStamp - cmdConfiguration.startTime;
+        if(cmdConfiguration.elapsed > cmdConfiguration.duration) {
+            cmdConfiguration.elapsed = cmdConfiguration.duration;
         }
 
-        for (let key in this.to) {
-            properties[key] = this.from[key] + (this.to[key] - this.from[key]) * easing[this.easing](this.elapsed / this.duration);
+        for (let key in cmdConfiguration.to) {
+            const easingFunc = easing[cmdConfiguration.easing];
+            const ratio = cmdConfiguration.elapsed / cmdConfiguration.duration;
+            const diff = cmdConfiguration.to[key] - cmdConfiguration.from[key];
+            cmdConfiguration.properties[key] = cmdConfiguration.from[key] + diff * easingFunc(ratio);
         }
 
-        if(!this.started) {
-            this.started = true;
-            this.start(properties);
+        if(!cmdConfiguration.started) {
+            cmdConfiguration.started = true;
+            cmdConfiguration.start(cmdConfiguration.properties);
         }
 
-        this.update(properties);
+        cmdConfiguration.update(cmdConfiguration.properties);
     }
 }
 
