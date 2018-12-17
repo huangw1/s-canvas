@@ -16,29 +16,32 @@
 <script>
     const stage = new sc.Stage('container', 400, 400);
 
+    const group = new sc.Group();
+
     const rect = new sc.Rect(200, 100, {
         fillStyle  : '#42B035',
         strokeStyle: '#42B035',
         lineWidth  : 4
     });
-    rect.x = 200;
-    rect.y = 200;
-    rect.originX = 100;
-    rect.originY = 50;
-    rect.cursor = 'pointer';
-    rect.on('drag', (event) => {
-        rect.x += event.dx;
-        rect.y += event.dy;
-        event.preventDefault();
-    });
-    stage.addChild(rect);
+    group.addChild(rect);
 
     const image = new sc.Bitmap('./img/ai.png');
-    image.x = 200 - 36 / 2;
-    image.y = 200 - 36 / 2;
-    stage.addChild(image);
+    image.x = (200 - 36) / 2;
+    image.y = (100 - 36) / 2;
+    group.addChild(image);
 
-    const text = new sc.Text('文本描述', {
+    group.x = 200;
+    group.y = 200;
+    group.originX = 100;
+    group.originY = 50;
+    group.cursor = 'pointer';
+    group.on('drag', (event) => {
+        group.scale -= event.dx / 100;
+        event.preventDefault();
+    });
+    stage.addChild(group);
+
+    const text = new sc.Text('左右移动组合可缩放', {
         textAlign: 'center',
         font: '16px sans-serif'
     });

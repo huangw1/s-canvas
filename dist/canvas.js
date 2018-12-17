@@ -2500,7 +2500,7 @@
 
 	            children.forEach(function (child) {
 	                if (child instanceof Group) {
-	                    _this._insertObjects(child.children, quadTree);
+	                    _this._insertObjects(quadTree, child.children);
 	                } else {
 	                    if (child.isVisible) {
 	                        var bound = child.getTransformedBounds();

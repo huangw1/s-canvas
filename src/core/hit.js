@@ -46,7 +46,7 @@ class Hit {
     _insertObjects(quadTree, children) {
         children.forEach(child => {
             if(child instanceof Group) {
-                this._insertObjects(child.children, quadTree)
+                this._insertObjects(quadTree, child.children);
             } else {
                 if(child.isVisible) {
                     const bound = child.getTransformedBounds();
